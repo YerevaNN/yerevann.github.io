@@ -7,7 +7,7 @@ relative_permalinks: true
 # Setup
 title:               YerevaNN
 tagline:             Blog on neural networks
-url:                 http://http://yerevann.github.io/
+url:                 http://yerevann.github.io/
 paginate:            1
 baseurl:             ""
 
@@ -28,3 +28,8 @@ author:
 version:             2.0.0
 github:
   repo:              https://github.com/poole/poole
+
+analytics :
+  provider : google
+  google :
+      tracking_id : 'UA-65778229-1'
