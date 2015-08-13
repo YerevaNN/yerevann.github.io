@@ -1,4 +1,5 @@
 ---
+date: 3015-08-15 09:14:00 +0400
 layout: post
 title: Diabetic retinopathy detection contest: what we did wrong
 ---
