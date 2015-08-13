@@ -22,4 +22,11 @@ It was obvious that we were going to use [convolutional neural networks](https:/
 
 We didn't have a computer with CUDA-enabled GPU in the university, but our friends at [Cyclop Studio](http://cyclopstudio.com/) donated us an Intel Core i5 computer with 4GB RAM and [NVidia GeForce GTX 550 TI](http://www.geforce.com/hardware/desktop-gpus/geforce-gtx-550ti/specifications) card. 550 TI has a 1GB of memory which forced us to use very small batch sizes for the neural network. Later we switched to [GeForce GTX 980](http://www.geforce.com/hardware/desktop-gpus/geforce-gtx-980/specifications) with 4GB memory, which was completely fine for us.
 
+Karen and Tigran managed to [install Caffe on Ubuntu](http://caffe.berkeleyvision.org/install_apt.html) and make it work with CUDA, which was enough to start the training. Later Narek and Hrayr found out how to play with Caffe models [using Python](https://github.com/BVLC/caffe/tree/master/python/caffe), so we can run our models on the test set.
+
 ## Image preprocessing
+Images from the training and test datasets have very different resolutions, aspect ratios, colors, are cropped in various ways, some are of very low quality, are out of focus etc. Neural networks require a fixed input size, so we had to resize / crop all of them to some fixed dimensions. Karen and Tigran looked at many sample images and decided that optimal resolution which preserves the details required for classification is 512x512. We thought that in 256x256 we might lose the small details that differ healthy eye images from level 1 images. In fact, by the end of the competition we saw that our networks cannot differentiate between level 0 and 1 images even with 512x512, so probably we could safely work on 256x256 from the very beginning (which would be much faster to train).
+
+We tried to preprocess the images in three ways.  
+
+_to be continued_
