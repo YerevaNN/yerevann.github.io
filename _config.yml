@@ -10,7 +10,6 @@ tagline:             Blog on neural networks
 url:                 http://yerevann.github.io/
 paginate:            1
 baseurl:             ""
-future: false
 
 # Assets
 #
