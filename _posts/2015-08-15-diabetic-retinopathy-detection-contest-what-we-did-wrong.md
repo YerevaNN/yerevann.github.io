@@ -1,6 +1,5 @@
 ---
 layout: post
-draft: true
 title: Diabetic retinopathy detection contest: what we did wrong
 ---
 
