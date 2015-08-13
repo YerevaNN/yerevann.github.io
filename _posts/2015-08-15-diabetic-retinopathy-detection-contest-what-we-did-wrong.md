@@ -11,7 +11,9 @@ After watching the [awesome video course by Hugo Larochelle](https://www.youtube
 
 Each eye of the patient can be in one of the 5 levels: from 0 to 4, where 0 corresponds to the healthy state and 4 is the most severe state. Different eyes of the same person can be at different levels (although some contestants managed to leverage the fact that two eyes are not completely independent). Contestants [were given](https://www.kaggle.com/c/diabetic-retinopathy-detection/data) 35126 JPEG images of retinas for training (32.5GB), 53576 images for testing (49.6GB) and a CSV file where level of the disease is written for the train images. The goal was to create another CSV file where disease levels are written for each of the test images. Contestants could submit maximum 5 CSV files per day for evaluation. 
 
-|![Healthy eye: level 0](/public/2015-08-15/eye-0.jpeg "Healthy eye: level 0") | ![Severe state: level 4](/public/2015-08-15/eye-0.jpeg "Severe state: level 4") |
+|![Healthy eye: level 0](/public/2015-08-15/eye-0.jpeg "Healthy eye: level 0") | ![Severe state: level 4](/public/2015-08-15/eye-4.jpeg "Severe state: level 4") |
+| --- | --- |
+| Healthy eye: level 0 | Severe state: level 4 | 
 
 The score was evaluated using a metric called **quadratic weighted kappa**. It is [described](https://www.kaggle.com/c/diabetic-retinopathy-detection/details/evaluation) as being an _agreement_ between two raters, in this case: the agreement between the scores assigned by human rater (which is unknown to contestants) and the predicted scores. If the agreement is random, the score is close 0 (although it can be negative). In case of a perfect agreement the score is 1. It is _quadratic_ in a sense that, for example, if you predict level 4 for a healthy eye, it is 16 times worse than if you predict level 1. Winners achieved a score [more than 0.84](https://www.kaggle.com/c/diabetic-retinopathy-detection/leaderboard). Our best result was around 0.50.
 
