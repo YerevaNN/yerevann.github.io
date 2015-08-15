@@ -5,6 +5,8 @@ title: Diabetic retinopathy detection contest. What we did wrong
 
 After watching the [awesome video course by Hugo Larochelle](https://www.youtube.com/playlist?list=PL6Xpj9I5qXYEcOhn7TqghAJ6NAPrNmUBH) on neural nets (more on this in the [previous post]({% post_url 2015-07-30-getting-started-with-neural-networks %})) we decided to test our knowledge on some computer vision contest. We looked at [Kaggle](https://www.kaggle.com/competitions) and the only active competition related to computer vision (except for the [digit recognizer contest](https://www.kaggle.com/c/digit-recognizer), for which lots of perfect out-of-the-box solutions exist) was the [Diabetic retinopathy detection contest](https://www.kaggle.com/c/diabetic-retinopathy-detection). This was probably quite hard to become our very first project, but nevertheless we decided to try. The team included [Karen](https://www.linkedin.com/in/mahnerak), [Tigran](https://www.linkedin.com/in/galstyantik), [Hrayr](https://github.com/Harhro94), [Narek](https://www.linkedin.com/pub/narek-hovsepyan/86/b35/380) (1st to 3rd year bachelor students) and [me](https://github.com/Hrant-Khachatrian) (PhD student). Long story short, we finished at the [82nd place](https://www.kaggle.com/c/diabetic-retinopathy-detection/leaderboard), and in this post I will describe in details what we did and what mistakes we made. We hope this will be interesting for those who just start to play with neural networks. Also we hope to get feedback from experts and other participants.
 
+* TOC
+{:toc}
 
 ## The contest
 [Diabetic retinopathy](https://en.wikipedia.org/wiki/Diabetic_retinopathy) is a disease when the retina of the eye is damaged due to diabetes. It is one of the leading causes of blindness in the world. The contest's aim was to see if computer programs can diagnose the disease automatically from the image of the retina. [It seems](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/15605/human-performance-on-the-competition-data-set) the winners slightly surpassed the performance of general ophthalmologists. 
@@ -38,7 +40,7 @@ But later we noticed that this method makes the dirt on lens or other optical is
 |![healthy eye](/public/2015-08-15/orig-35297_left-0.jpeg "healthy eye") | ![_edge_, recognized as level 4](/public/2015-08-15/edge-35297_left-0.jpeg "_edge_, recognized as level 4") |
 |![healthy eye](/public/2015-08-15/orig-44330_left-0.jpeg "healthy eye") | ![_edge_, recognized as level 4](/public/2015-08-15/edge-44330_left-0.jpeg "_edge_, recognized as level 4") |
 | --- | --- |
-| Original images of a healthy eyes | Preprocessed versions _(edge)_ recognized as level 4 |
+| Original images of healthy eyes | Preprocessed versions _(edge)_ recognized as level 4 |
 
 So we decided to avoid using filters on the images, to leave all the work to the convolutional network: just resize and convert to one channel image (to save space and memory). We thought that the color information is not very important to detect the disease, although this could be one of our mistakes. Following the discussion at [Kaggle forums](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/13147/rgb-or-grayscale/69138) we decided to use the green channel only. We got our best results (kappa = 0.5) on this dataset. We used prefix _g_ for these images.
 
