@@ -27,16 +27,40 @@ Karen and Tigran managed to [install Caffe on Ubuntu](http://caffe.berkeleyvisio
 ## Image preprocessing
 Images from the training and test datasets have very different resolutions, aspect ratios, colors, are cropped in various ways, some are of very low quality, are out of focus etc. Neural networks require a fixed input size, so we had to resize / crop all of them to some fixed dimensions. Karen and Tigran looked at many sample images and decided that optimal resolution which preserves the details required for classification is 512x512. We thought that in 256x256 we might lose the small details that differ healthy eye images from level 1 images. In fact, by the end of the competition we saw that our networks cannot differentiate between level 0 and 1 images even with 512x512, so probably we could safely work on 256x256 from the very beginning (which would be much faster to train). All preprocessing was done using [imagemagick](http://www.imagemagick.org/).
 
-We tried three methods to preprocess the images. First, as suggested by Karen and Tigran, we resized the images and then applied the so called _[charcoal](http://www.imagemagick.org/Usage/transform/#charcoal)_ effect which is basically an edge detector. This highlighted the signs of blood on the retina. We used "_edge_" codename for the images preprocessed this way. 
+We tried three methods to preprocess the images. First, as suggested by Karen and Tigran, we resized the images and then applied the so called _[charcoal](http://www.imagemagick.org/Usage/transform/#charcoal)_ effect which is basically an edge detector. This highlighted the signs of blood on the retina. One of the challenging problems throughout the contest was to define a naming convention for everything: databases of preprocessed images, convnet descriptions, models, CSV files etc. We used the prefix "_edge_" for anything which was based on the images preprocessed this way. 
 
 |![_edge_ level 0](/public/2015-08-15/eye-edge-0.jpg "_edge_ level 0") | ![_edge_ level 3](/public/2015-08-15/eye-edge-3.jpg "_edge_ level 3") |
 | --- | --- |
-| Preprocessed image (_edge_) level 0 | Preprocessed image (_edge_) level 3 | 
+| Preprocessed image _(edge)_ level 0 | Preprocessed image _(edge)_ level 3 | 
 
-But later we noticed that this method makes the dirt on lens or other optical issues appear similar to a blood, and it seriously confused our neural networks. The following two images are of healthy eyes (level 0), but both were recognized by almost all our models as level 4.
+But later we noticed that this method makes the dirt on lens or other optical issues appear similar to a blood, and it really confused our neural networks. The following two images are of healthy eyes (level 0), but both were recognized by almost all our models as level 4.
 
-|![healthy eye](/public/2015-08-15/orig-35297_left-0.jpeg "healthy eye") | ![_edge_, recognized as level 4](/public/2015-08-15/edge-35297_left-0.jpeg "_edge_, recognized as level 4") | ![healthy eye](/public/2015-08-15/orig-44330_left-0.jpeg "healthy eye") | ![_edge_, recognized as level 4](/public/2015-08-15/edge-44330_left-0.jpeg "_edge_, recognized as level 4") |
-| --- | --- | --- | --- |
-| Original image of a healthy eye | Preprocessed version (_edge_) recognized as level 4 | Original image of another healthy eye | Preprocessed version (_edge_)  recognized as level 4| 
+|![healthy eye](/public/2015-08-15/orig-35297_left-0.jpeg "healthy eye") | ![_edge_, recognized as level 4](/public/2015-08-15/edge-35297_left-0.jpeg "_edge_, recognized as level 4") |
+|![healthy eye](/public/2015-08-15/orig-44330_left-0.jpeg "healthy eye") | ![_edge_, recognized as level 4](/public/2015-08-15/edge-44330_left-0.jpeg "_edge_, recognized as level 4") |
+| --- | --- |
+| Original images of a healthy eyes | Preprocessed versions _(edge)_ recognized as level 4 |
+
+So we decided to avoid using filters on the images, to leave all the work to the convolutional network: just resize and convert to one channel image (to save space and memory). We thought that the color information is not very important to detect the disease, although this could be one of our mistakes. Following the discussion at [Kaggle forums](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/13147/rgb-or-grayscale/69138) we decided to use the green channel only. We got our best results (kappa = 0.5) on this dataset. We used prefix _g_ for these images.
+
+Finally we tried to apply the [_equalize_](http://www.imagemagick.org/Usage/color_mods/#equalize) filter on top of the green channel, which makes the histogram of the image uniform. The best kappa score we managed to get on the dataset preprocessed this way was only 0.4. We used prefix _ge_ for these images.
+ 
+|![Just the green channel: _(g)_](/public/2015-08-15/g-99_left-3.jpeg "Just the green channel: _(g)_") | ![Histogram equalization on top of the green channel: _(ge)_](/public/2015-08-15/ge-99_left-3.jpeg "Histogram equalization on top of the green channel: _(ge)_") |
+| --- | --- |
+| Just the green channel: _(g)_ | Histogram equalization on top of the green channel: _(ge)_ |
+ 
+
+## Data augmentation
+
+## Training / validation sets separation
+ 
+## Convolution network architecture
+
+## Loss function
+
+## Preparing submissions, attempts to ensemble
+
+## More on this contest
+
+## Acknowledgements
 
 _to be continued_
