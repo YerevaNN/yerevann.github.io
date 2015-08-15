@@ -31,7 +31,7 @@ Karen and Tigran managed to [install Caffe on Ubuntu](http://caffe.berkeleyvisio
 ## Image preprocessing
 Images from the training and test datasets have very different resolutions, aspect ratios, colors, are cropped in various ways, some are of very low quality, are out of focus etc. Neural networks require a fixed input size, so we had to resize / crop all of them to some fixed dimensions. Karen and Tigran looked at many sample images and decided that optimal resolution which preserves the details required for classification is 512x512. We thought that in 256x256 we might lose the small details that differ healthy eye images from level 1 images. In fact, by the end of the competition we saw that our networks cannot differentiate between level 0 and 1 images even with 512x512, so probably we could safely work on 256x256 from the very beginning (which would be much faster to train). All preprocessing was done using [imagemagick](http://www.imagemagick.org/).
 
-We tried three methods to preprocess the images. First, as suggested by Karen and Tigran, we resized the images and then applied the so called _[charcoal](http://www.imagemagick.org/Usage/transform/#charcoal)_ effect which is basically an edge detector. This highlighted the signs of blood on the retina. One of the challenging problems throughout the contest was to define a naming convention for everything: databases of preprocessed images, convnet descriptions, models, CSV files etc. We used the prefix "_edge_" for anything which was based on the images preprocessed this way. 
+We tried three methods to preprocess the images. First, as suggested by Karen and Tigran, we resized the images and then applied the so called _[charcoal](http://www.imagemagick.org/Usage/transform/#charcoal)_ effect which is basically an edge detector. This highlighted the signs of blood on the retina. One of the challenging problems throughout the contest was to define a naming convention for everything: databases of preprocessed images, convnet descriptions, models, CSV files etc. We used the prefix "_edge_" for anything which was based on the images preprocessed this way. The best kappa score achieved on this dataset was 0.42.
 
 |![_edge_ level 0](/public/2015-08-15/eye-edge-0.jpg "_edge_ level 0") | ![_edge_ level 3](/public/2015-08-15/eye-edge-3.jpg "_edge_ level 3") |
 | --- | --- |
@@ -54,8 +54,15 @@ Finally we tried to apply the [_equalize_](http://www.imagemagick.org/Usage/colo
  
 
 ## Data augmentation
+One of the problems of neural networks is that they are extremely powerful. They learn so well that they usually learn something that degrades their performance on other (previously unseen) data. One (made-up) example: the images in the training set are taken by different cameras and have different characteristics. If for some reason, say, the percentage of images of level 2 in dark images is higher than in general, the network may start to predict level 2 more often for dark images. We are not aware of any way to detect such "misleading" correlations by looking at neuron activations of convolution filters. It is possible to train the network on one subset of data and test it on another, and if the performance on these subsets are different, then the network has learned something very specific to the training data, and we should try to avoid it.
+ 
+One of the solutions to this problem is to enlarge the dataset in order to minimize the chances of such correlations to happen. This is called _[data augmentation](https://www.youtube.com/watch?v=Km1Q5VcSKAg&index=77&list=PL6Xpj9I5qXYEcOhn7TqghAJ6NAPrNmUBH)_. The organizers of this contest explicitly [forbid](https://www.kaggle.com/c/diabetic-retinopathy-detection/rules) to use data outside the dataset they provided. But it's obvious that if you take an image, zoom it, rotate it, flip it, change the brightness etc. the level of the disease is not changed. So it is possible to apply these transformations to the images and obtain much larger and "more random" training dataset. One approach is to take all versions of all images into the training set, another approach is to randomly choose one transformation for each of the images. The mixture of these approaches helps to solve another problem which will be discussed in the next section.
+   
+We applied very limited transformations only. For every image we created 4 samples: original, rotated by 180 degrees, and the vertical flipped versions of these two. This helped to avoid the problem, that some of the images in the dataset [were flipped](https://www.kaggle.com/c/diabetic-retinopathy-detection/data).
+  
+We believe that we spent way too little time on data augmentation. All other contestants we have seen use much more sophisticated transformations. Probably this was our most important mistake.
 
-## Training / validation sets separation
+## Choosing training / validation sets 
  
 ## Convolution network architecture
 
