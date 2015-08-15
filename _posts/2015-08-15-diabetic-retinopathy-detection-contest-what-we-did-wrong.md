@@ -25,8 +25,18 @@ We didn't have a computer with CUDA-enabled GPU in the university, but our frien
 Karen and Tigran managed to [install Caffe on Ubuntu](http://caffe.berkeleyvision.org/install_apt.html) and make it work with CUDA, which was enough to start the training. Later Narek and Hrayr found out how to play with Caffe models [using Python](https://github.com/BVLC/caffe/tree/master/python/caffe), so we can run our models on the test set.
 
 ## Image preprocessing
-Images from the training and test datasets have very different resolutions, aspect ratios, colors, are cropped in various ways, some are of very low quality, are out of focus etc. Neural networks require a fixed input size, so we had to resize / crop all of them to some fixed dimensions. Karen and Tigran looked at many sample images and decided that optimal resolution which preserves the details required for classification is 512x512. We thought that in 256x256 we might lose the small details that differ healthy eye images from level 1 images. In fact, by the end of the competition we saw that our networks cannot differentiate between level 0 and 1 images even with 512x512, so probably we could safely work on 256x256 from the very beginning (which would be much faster to train).
+Images from the training and test datasets have very different resolutions, aspect ratios, colors, are cropped in various ways, some are of very low quality, are out of focus etc. Neural networks require a fixed input size, so we had to resize / crop all of them to some fixed dimensions. Karen and Tigran looked at many sample images and decided that optimal resolution which preserves the details required for classification is 512x512. We thought that in 256x256 we might lose the small details that differ healthy eye images from level 1 images. In fact, by the end of the competition we saw that our networks cannot differentiate between level 0 and 1 images even with 512x512, so probably we could safely work on 256x256 from the very beginning (which would be much faster to train). All preprocessing was done using [imagemagick](http://www.imagemagick.org/).
 
-We tried to preprocess the images in three ways.  
+We tried three methods to preprocess the images. First, as suggested by Karen and Tigran, we resized the images and then applied the so called _[charcoal](http://www.imagemagick.org/Usage/transform/#charcoal)_ effect which is basically an edge detector. This highlighted the signs of blood on the retina. We used "_edge_" codename for the images preprocessed this way. 
+
+|![_edge_ level 0](/public/2015-08-15/eye-edge-0.jpg "_edge_ level 0") | ![_edge_ level 3](/public/2015-08-15/eye-edge-3.jpg "_edge_ level 3") |
+| --- | --- |
+| Preprocessed image (_edge_) level 0 | Preprocessed image (_edge_) level 3 | 
+
+But later we noticed that this method makes the dirt on lens or other optical issues appear similar to a blood, and it seriously confused our neural networks. The following two images are of healthy eyes (level 0), but both were recognized by almost all our models as level 4.
+
+|![healthy eye](/public/2015-08-15/orig-35297_left-0.jpeg "healthy eye") | ![_edge_, recognized as level 4](/public/2015-08-15/edge-35297_left-0.jpeg "_edge_, recognized as level 4") | ![healthy eye](/public/2015-08-15/orig-44330_left-0.jpeg "healthy eye") | ![_edge_, recognized as level 4](/public/2015-08-15/edge-44330_left-0.jpeg "_edge_, recognized as level 4") |
+| --- | --- | --- | --- |
+| Original image of a healthy eye | Preprocessed version (_edge_) recognized as level 4 | Original image of another healthy eye | Preprocessed version (_edge_)  recognized as level 4| 
 
 _to be continued_
