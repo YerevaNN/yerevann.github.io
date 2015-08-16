@@ -7,6 +7,8 @@ title: Getting started with neural networks
 
 We are a group of students from the department of [Informatics and Applied Mathematics](http://ysu.am/faculties/en/Informatics-and-Applied-Mathematics) at [Yerevan State University](http://ysu.am/main/en). In 2014, inspired by successes of neural nets in various fields, especially by [GoogLeNet's](http://karpathy.github.io/2014/09/02/what-i-learned-from-competing-against-a-convnet-on-imagenet/) excellent performance in ImageNet 2014, we decided to dive into the topic of neural networks. We study calculus, combinatorics, graph theory, algebra and many other topics in the university but we learn nothing about machine learning. Just a few students take some [ML courses](https://www.coursera.org/learn/machine-learning/home/info) from Coursera or elsewhere.
 
+<!--more-->
+
 ## Choosing a video course
 At the beginning of 2015 the [Student Scientific Society](http://ysu.am/sss/en) of the department initiated a project to study neural networks. We had to choose some video course on the internet, then watch and discuss the videos once per week in the university. We wanted a course that would cover everything from the very basics to convolutional networks and deep learning. We followed [Yoshua Bengio's](http://www.iro.umontreal.ca/~bengioy/yoshua_en/index.html) advice given during his [interview on Reddit](http://www.reddit.com/r/MachineLearning/comments/1ysry1/ama_yoshua_bengio) and chose [this excellent class](https://www.youtube.com/playlist?list=PL6Xpj9I5qXYEcOhn7TqghAJ6NAPrNmUBH) by [Hugo Larochelle](http://www.dmi.usherb.ca/~larocheh/index_en.html).
 
