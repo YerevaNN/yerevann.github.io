@@ -97,62 +97,43 @@ Finally we decided to train a network to differentiate between two classes only:
 Later we wanted to train a classifier which would differentiate level 0 images from level 1 images only, but the networks we tried didn't work at all. Another classifier we used to differentiate between level 2 and level 3 + level 4 images actually learned something, but we couldn't increase the overall kappa score based on that. More on this below.
   
 ## Convolutional network architecture
-Our best performing [neural network architecture](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5.prototxt) and corresponding [solver](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/best-performing-solver.prototxt) are on Github. _Batch size_ was always fixed to 20 (on GTX 980 card). We used a simple _stochastic gradient descent_ with 0.9 _momentum_ and didn't touch learning rate policy at all (actually it didn't decrease the rate significantly). We started at 0.001 _learning rate_, and sometimes manually decreased it (but not in this particular case which brought the best kappa score). Also in this best performing case we started with 0 _weight decay_, and after the first signs of overfitting (after 48K iterations, which is almost 20 epochs) increased it to 0.0015. 
+Our best performing [neural network architecture](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5.prototxt) and corresponding [solver](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/best-performing-solver.prototxt) are on Github. _Batch size_ was always fixed to 20 (on GTX 980 card). We used a simple _stochastic gradient descent_ with 0.9 _momentum_ and didn't touch learning rate policy at all (it didn't decrease the rate significantly). We started at 0.001 _learning rate_, and sometimes manually decreased it (but not in this particular case which brought the best kappa score). Also in this best performing case we started with 0 _weight decay_, and after the first signs of overfitting (after 48K iterations, which is almost 20 epochs) increased it to 0.0015. 
 
-Convolution was done similar to the "traditional" [LeNet architecture](http://caffe.berkeleyvision.org/gathered/examples/mnist.html): one max pooling layer after every convolution layer, with fully connected layers at the end. 
+Convolution was done similar to the "traditional" [LeNet architecture](http://caffe.berkeleyvision.org/gathered/examples/mnist.html) (developed by [Yann LeCun](http://yann.lecun.com/), who invented the convolutional networks): one max pooling layer after every convolution layer, with fully connected layers at the end. 
 
 Almost all other contestants used the other famous approach, with multiple consecutive convolutional layers with small kernels before a pooling layer. This was developed by [Karen Simonyan and Andrew Zisserman](http://www.robots.ox.ac.uk/~vgg/research/very_deep/) at Visual Geometry Group, University of Oxford (that's why it is called _VGGNet_ or _OxfordNet_) for the [ImageNet 2014 contest](http://www.image-net.org/challenges/LSVRC/2014/results#clsloc) where they took 1st and 2nd places for localization and classification tasks, respectively. Their approach was popularized by [Andrej Karpathy](http://cs231n.github.io/convolutional-networks/#case) and was successfully used in the [plankton classification contest](http://benanne.github.io/2015/03/17/plankton.html#architecture). I have tried this approach once, but it required significantly more memory and time, so I quickly abandoned it.
 
 Here is the structure of our network:
 
-| Nr| Type	| Batches| Channels | Width | Height| kernel size / stride |
-| --| ----	| -------| -------- | ----- | ------| --------- |
+| Nr| Type	| Batches| Channels | Width | Height| Kernel size / stride |
 | 0 | Input	| 20	| 1 		| 512	| 512	| 			| 
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 1	| Conv	| 20	| 40		| 506	| 506	| 7x7 / 1	|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 2	| ReLU	| 20	| 40		| 506	| 506	| 			|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 3 | MaxPool|20	| 40		| 253	| 253	| 3x3 / 2	|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 4	| Conv	| 20	| 40		| 249	| 249	| 5x5 / 1	|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 5	| ReLU	| 20	| 40		| 249	| 249	| 			|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 6 | MaxPool|20	| 40		| 124	| 124	| 3x3 / 2	|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 7	| Conv	| 20	| 40		| 120	| 120	| 5x5 / 1	|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 8	| ReLU	| 20	| 40		| 120	| 120	| 			|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 9 | MaxPool|20	| 40		| 60	| 60	| 3x3 / 2	|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 10| Conv	| 20	| 40		| 56	| 56	| 5x5 / 1	|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 11| ReLU	| 20	| 40		| 56	| 56	| 			|
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 12| MaxPool|20	| 40		| 14	| 14	| 4x4 / 4	|
-| --| ----	| -------| -------- | ----- | ------| --------- |
-| 13| Dense |20	| 256		|  |  |  |
-| --| ----	| -------| -------- | ----- | ------| --------- |
+| 13| Fully connected |20	| 256		|  |  |  |
 | 14| ReLU	|20	| 256		|  |  |  |
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 15| Dropout|20	| 256		|  |  |  |
-| --| ----	| -------| -------- | ----- | ------| --------- |
-| 16| Dense |20	| 256		|  |  |  |
-| --| ----	| -------| -------- | ----- | ------| --------- |
+| 16| Fully connected|20	| 256		|  |  |  |
 | 17| ReLU	|20	| 256		|  |  |  |
-| --| ----	| -------| -------- | ----- | ------| --------- |
 | 18| Dropout|20	| 256		|  |  |  |
-| --| ----	| -------| -------- | ----- | ------| --------- |
-| 19| Dense|20	| 1		|  |  |  |
-| --| ----	| -------| -------- | ----- | ------| --------- |
+| 19| Fully connected|20	| 1		|  |  |  |
 | 20| Euclidean Loss|1	| 1		|  |  |  |
-| --| ----	| -------| -------- | ----- | ------| --------- |
 
+Some observations related to the network architecture:
 
-Our findings (a list)
-ReLU (Youtube video of googlers) 
+* [ReLU activations](https://en.wikipedia.org/wiki/Rectifier_(neural_networks)) on all convolutional and fully connected layers helped a lot, kappa score increased by almost 0.1. It's interesting to note that Christian Szegedy, one of the GoogLeNet developers (which won the classification contest at ImageNet 2014), [expressed an opinion](https://www.youtube.com/watch?v=ySrj_G5gHWI) that the main reason for the deep learning revolution is actually the ReLU function :)
+* 2 fully connected layers (256 neurons each) at the end is better than one fully connected layer. Kappa increased by almost 0.03.
+* Number of filters in the convolutional layers are not very important. Difference between, say, 20 and 40 layers is very little
+* Dropout helps fight overfitting (we used 50% probability everywhere)
 
 ## Loss function
 
