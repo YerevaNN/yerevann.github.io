@@ -31,26 +31,26 @@ Karen and Tigran managed to [install Caffe on Ubuntu](http://caffe.berkeleyvisio
 ## Image preprocessing
 Images from the training and test datasets have very different resolutions, aspect ratios, colors, are cropped in various ways, some are of very low quality, are out of focus etc. Neural networks require a fixed input size, so we had to resize / crop all of them to some fixed dimensions. Karen and Tigran looked at many sample images and decided that optimal resolution which preserves the details required for classification is 512x512. We thought that in 256x256 we might lose the small details that differ healthy eye images from level 1 images. In fact, by the end of the competition we saw that our networks cannot differentiate between level 0 and 1 images even with 512x512, so probably we could safely work on 256x256 from the very beginning (which would be much faster to train). All preprocessing was done using [imagemagick](http://www.imagemagick.org/).
 
-We tried three methods to preprocess the images. First, as suggested by Karen and Tigran, we resized the images and then applied the so called _[charcoal](http://www.imagemagick.org/Usage/transform/#charcoal)_ effect which is basically an edge detector. This highlighted the signs of blood on the retina. One of the challenging problems throughout the contest was to define a naming convention for everything: databases of preprocessed images, convnet descriptions, models, CSV files etc. We used the prefix "_edge_" for anything which was based on the images preprocessed this way. The best kappa score achieved on this dataset was 0.42.
+We tried three methods to preprocess the images. First, as suggested by Karen and Tigran, we resized the images and then applied the so called _[charcoal](http://www.imagemagick.org/Usage/transform/#charcoal)_ effect which is basically an edge detector. This highlighted the signs of blood on the retina. One of the challenging problems throughout the contest was to define a naming convention for everything: databases of preprocessed images, convnet descriptions, models, CSV files etc. We used the prefix `edge` for anything which was based on the images preprocessed this way. The best kappa score achieved on this dataset was 0.42.
 
-|![_edge_ level 0](/public/2015-08-15/eye-edge-0.jpg "_edge_ level 0") | ![_edge_ level 3](/public/2015-08-15/eye-edge-3.jpg "_edge_ level 3") |
+|![`edge` level 0](/public/2015-08-15/eye-edge-0.jpg "`edge` level 0") | ![`edge` level 3](/public/2015-08-15/eye-edge-3.jpg "`edge` level 3") |
 | --- | --- |
 | Preprocessed image _(edge)_ level 0 | Preprocessed image _(edge)_ level 3 | 
 
 But later we noticed that this method makes the dirt on lens or other optical issues appear similar to a blood, and it really confused our neural networks. The following two images are of healthy eyes (level 0), but both were recognized by almost all our models as level 4.
 
-|![healthy eye](/public/2015-08-15/orig-35297_left-0.jpeg "healthy eye") | ![_edge_, recognized as level 4](/public/2015-08-15/edge-35297_left-0.jpeg "_edge_, recognized as level 4") |
-|![healthy eye](/public/2015-08-15/orig-44330_left-0.jpeg "healthy eye") | ![_edge_, recognized as level 4](/public/2015-08-15/edge-44330_left-0.jpeg "_edge_, recognized as level 4") |
+|![healthy eye](/public/2015-08-15/orig-35297_left-0.jpeg "healthy eye") | ![`edge`, recognized as level 4](/public/2015-08-15/edge-35297_left-0.jpeg "`edge`, recognized as level 4") |
+|![healthy eye](/public/2015-08-15/orig-44330_left-0.jpeg "healthy eye") | ![`edge`, recognized as level 4](/public/2015-08-15/edge-44330_left-0.jpeg "`edge`, recognized as level 4") |
 | --- | --- |
 | Original images of healthy eyes | Preprocessed versions _(edge)_ recognized as level 4 |
 
-So we decided to avoid using filters on the images, to leave all the work to the convolutional network: just resize and convert to one channel image (to save space and memory). We thought that the color information is not very important to detect the disease, although this could be one of our mistakes. Following the discussion at [Kaggle forums](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/13147/rgb-or-grayscale/69138) we decided to use the green channel only. We got our best results (kappa = 0.5) on this dataset. We used prefix _g_ for these images.
+So we decided to avoid using filters on the images, to leave all the work to the convolutional network: just resize and convert to one channel image (to save space and memory). We thought that the color information is not very important to detect the disease, although this could be one of our mistakes. Following the discussion at [Kaggle forums](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/13147/rgb-or-grayscale/69138) we decided to use the green channel only. We got our best results (kappa = 0.5) on this dataset. We used prefix `g` for these images.
 
-Finally we tried to apply the [_equalize_](http://www.imagemagick.org/Usage/color_mods/#equalize) filter on top of the green channel, which makes the histogram of the image uniform. The best kappa score we managed to get on the dataset preprocessed this way was only 0.4. We used prefix _ge_ for these images.
+Finally we tried to apply the [_equalize_](http://www.imagemagick.org/Usage/color_mods/#equalize) filter on top of the green channel, which makes the histogram of the image uniform. The best kappa score we managed to get on the dataset preprocessed this way was only 0.4. We used prefix `ge` for these images.
  
-|![Just the green channel: _(g)_](/public/2015-08-15/g-99_left-3.jpeg "Just the green channel: _(g)_") | ![Histogram equalization on top of the green channel: _(ge)_](/public/2015-08-15/ge-99_left-3.jpeg "Histogram equalization on top of the green channel: _(ge)_") |
+|![Just the green channel: g](/public/2015-08-15/g-99_left-3.jpeg "Just the green channel: g") | ![Histogram equalization on top of the green channel: ge](/public/2015-08-15/ge-99_left-3.jpeg "Histogram equalization on top of the green channel: ge") |
 | --- | --- |
-| Just the green channel: _(g)_ | Histogram equalization on top of the green channel: _(ge)_ |
+| Just the green channel: `g` | Histogram equalization on top of the green channel: `ge` |
  
 
 ## Data augmentation
@@ -160,9 +160,9 @@ At the beginning we started to use [softmax loss](http://caffe.berkeleyvision.or
  
 Ideally we would like to have a loss function that implements the kappa metric. But we didn't risk to implement a new layer in Caffe. [Jeffrey De Fauw](http://jeffreydf.github.io/diabetic-retinopathy-detection/#the-opening) has implemented some continuous approximation of kappa metric using Theano with a lot of success. 
  
-When we switched to 0,1 vs 2,3,4 classification, I thought 2-neuron softmax would be better than Euclidean loss because of the second neuron: it might bring some information that could help to obtain better score. But after some tests I saw that the sum of the activations of the two softmax neurons tends to to 1, so the second neuron does not bring new information. So, the rest of the training was done using Euclidean loss (although I am not sure if that was the best option).
+When we switched to 0,1 vs 2,3,4 classification, I thought 2-neuron softmax would be better than Euclidean loss because of the second neuron: it might bring some information that could help to obtain better score. But after some tests I saw that the sum of the activations of the two softmax neurons tends to 1, so the second neuron does not bring new information. The rest of the training was done using Euclidean loss (although I am not sure if that was the best option).
 
-We logged the output of Caffe into a file, then plotted the graphs of training and validation losses using a [Python script written](https://github.com/YerevaNN/Caffe-python-tools/blob/master/plot_loss.py) by Hrayr:
+We logged the output of Caffe into a file, then plotted the graphs of training and validation losses using a [Python script](https://github.com/YerevaNN/Caffe-python-tools/blob/master/plot_loss.py) written by Hrayr:
 
 {% highlight bash %}
 ./build/tools/caffe train -solver=solver.prototxt &> log_g_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt
@@ -171,12 +171,27 @@ python plot_loss.py log_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-l
 
 {% endhighlight %}
 
-The script allows to print multiple logs on the same image and uses `moving average` to make the graph look smoother. It correctly aligns the graphs even if the log does not start from the first iteration (in case the training is resumed from a Caffe snapshot). For example, in the plot below `train 1` and `val 1` correspond to the model described in the previous section with `weight decay=0`, `train 2` and `val 2` correspond to the model which started from the 48000th iteration of the previous model but used `weight decay=0.0015`. The best kappa score was obtained on 81000th iteration of the second model. Since that we observe overfitting. Note that the validation loss is usually lower than the training loss. The reason is that the classes are equal in the training set and are far from being equal in the validation set. So the training and validation losses cannot be compared.
+The script allows to print multiple logs on the same image and uses `moving average` to make the graph look smoother. It correctly aligns the graphs even if the log does not start from the first iteration (in case the training is resumed from a Caffe snapshot). For example, in the plot below `train 1` and `val 1` correspond to the model described in the previous section with `weight decay=0`, `train 2` and `val 2` correspond to the model which started from the 48000th iteration of the previous model but used `weight decay=0.0015`. The best kappa score was obtained on 81000th iteration of the second model. Since that we observe overfitting. 
  
 ![Training and validation losses for our best model](/public/2015-08-15/log_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt.png "Training and validation losses for our best model")
 
+Note that the validation loss is usually lower than the training loss. The reason is that the classes are equal in the training set and are far from being equal in the validation set. So the training and validation losses cannot be compared.
 
-## Preparing submissions, attempts to ensemble
+## Preparing submissions
+After training the models we used a [Python script](https://github.com/YerevaNN/Caffe-python-tools/blob/master/predict_regression.py) to make predictions for the images in validation set. It creates a CSV file with neuron activations. Then we imported this CSV into Wolfram Mathematica and played with it there.
+ 
+I use Mathematica mainly because of its nice visualizations. Here is one of them: the `x` axis is the activation of the single neuron of the last layer, and the graphs present the percentages of the images of each particular label that have `x` activation. Ideally the graphs corresponding to different labels should be clearly separable by vertical lines. Unfortunately that's not the case, which visually explains why the kappa score is so low.
+
+![Percentage of images per given neuron activation](/public/2015-08-15/best-model-graphs.png "Percentage of images per given neuron activation")
+
+In order to convert the neuron activations to predicted levels we need to determine 4 "threshold" numbers. These graphs show that it's not obvious how to choose these 4 numbers in order to maximize the kappa score. So we take, say, 1000 random 4-tuples of numbers between minimum and maximum activations of the neuron, and calculate the kappa score for each of the tuples. Then we take the 4-tuple for which the kappa was maximal, and use these numbers as thresholds for the images in the test set.
+ 
+Note that we calculate the kappa scores for the validation set, although there is a risk to overfit the validation set. Ideally we should choose those thresholds which attain maximum kappa score on the train set. But, in practice, the thresholds that maximize the kappa score on validation set perform better on the test set, mainly because the network has already overfit the training set!
+
+## Attempts to ensemble
+
+Finally, note that Mathematica is the only non-free software used in the whole training process. We believe it is better to keep the ecosystem clean :) IPython seems to be a good alternative.
+
 
 ## More on this contest
 
