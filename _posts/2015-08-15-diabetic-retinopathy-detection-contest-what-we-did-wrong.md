@@ -117,6 +117,7 @@ Almost all other contestants used the other famous approach, with multiple conse
 Here is the structure of our network:
 
 | Nr| Type	| Batches| Channels | Width | Height| Kernel size / stride |
+| -- | --- | ------ | ------- | ------ | ------ | -------- |
 | 0 | Input	| 20	| 1 		| 512	| 512	| 			| 
 | 1	| Conv	| 20	| 40		| 506	| 506	| 7x7 / 1	|
 | 2	| ReLU	| 20	| 40		| 506	| 506	| 			|
