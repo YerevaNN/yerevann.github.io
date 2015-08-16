@@ -104,6 +104,7 @@ Convolution was done similar to the "traditional" [LeNet architecture](http://ca
 Almost all other contestants used the other famous approach, with multiple consecutive convolutional layers with small kernels before a pooling layer. This was developed by [Karen Simonyan and Andrew Zisserman](http://www.robots.ox.ac.uk/~vgg/research/very_deep/) at Visual Geometry Group, University of Oxford (that's why it is called _VGGNet_ or _OxfordNet_) for the [ImageNet 2014 contest](http://www.image-net.org/challenges/LSVRC/2014/results#clsloc) where they took 1st and 2nd places for localization and classification tasks, respectively. Their approach was popularized by [Andrej Karpathy](http://cs231n.github.io/convolutional-networks/#case) and was successfully used in the [plankton classification contest](http://benanne.github.io/2015/03/17/plankton.html#architecture). I have tried this approach once, but it required significantly more memory and time, so I quickly abandoned it.
 
 Here is the structure of our network:
+
 | Nr| Type	| Batches| Channels | Width | Height| kernel size / stride |
 | --| ----	| -------| -------- | ----- | ------| --------- |
 | 0 | Input	| 20	| 1 		| 512	| 512	| 			| 
