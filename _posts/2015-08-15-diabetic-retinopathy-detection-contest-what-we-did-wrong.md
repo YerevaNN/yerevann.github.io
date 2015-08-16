@@ -54,7 +54,7 @@ Finally we tried to apply the [_equalize_](http://www.imagemagick.org/Usage/colo
  
 
 ## Data augmentation
-One of the problems of neural networks is that they are extremely powerful. They learn so well that they usually learn something that degrades their performance on other (previously unseen) data. One (made-up) example: the images in the training set are taken by different cameras and have different characteristics. If for some reason, say, the percentage of images of level 2 in dark images is higher than in general, the network may start to predict level 2 more often for dark images. We are not aware of any way to detect such "misleading" correlations by looking at neuron activations of convolution filters. It is possible to train the network on one subset of data and test it on another, and if the performance on these subsets are different, then the network has learned something very specific to the training data, and we should try to avoid it.
+One of the problems of neural networks is that they are extremely powerful. They learn so well that they usually learn something that degrades their performance on other (previously unseen) data. One (made-up) example: the images in the training set are taken by different cameras and have different characteristics. If for some reason, say, the percentage of images of level 2 in dark images is higher than in general, the network may start to predict level 2 more often for dark images. We are not aware of any way to detect such "misleading" correlations by looking at neuron activations of convolution filters. It is possible to train the network on one subset of data and test it on another, and if the performance on these subsets are different, then the network has learned something very specific to the training data, it has **overfit** the training data, and we should try to avoid it.
  
 One of the solutions to this problem is to enlarge the dataset in order to minimize the chances of such correlations to happen. This is called _[data augmentation](https://www.youtube.com/watch?v=Km1Q5VcSKAg&index=77&list=PL6Xpj9I5qXYEcOhn7TqghAJ6NAPrNmUBH)_. The organizers of this contest explicitly [forbid](https://www.kaggle.com/c/diabetic-retinopathy-detection/rules) to use data outside the dataset they provided. But it's obvious that if you take an image, zoom it, rotate it, flip it, change the brightness etc. the level of the disease is not changed. So it is possible to apply these transformations to the images and obtain much larger and "more random" training dataset. One approach is to take all versions of all images into the training set, another approach is to randomly choose one transformation for each of the images. The mixture of these approaches helps to solve another problem which will be discussed in the next section.
    
@@ -62,9 +62,44 @@ We applied very limited transformations only. For every image we created 4 sampl
   
 We believe that we spent way too little time on data augmentation. All other contestants we have seen use much more sophisticated transformations. Probably this was our most important mistake.
 
-## Choosing training / validation sets 
+## Choosing training / validation sets
+There are two reasons to train the network only on a subset of the train dataset provided by Kaggle. First reason is to be able to compare different models. We need to choose the model which generalizes best to the unseen data, not the one which performs best on the data it has been trained on. So we train various models on some subset of the dataset (again called a _training set_), then compare their performance on the other subset (called a _validation set_) and pick the one which works better on the latter. 
+
+The second reason is to detect overfitting while training. During the training we sometimes (in Caffe this is configured by the [_test_interval_ parameter](http://caffe.berkeleyvision.org/tutorial/solver.html)) run the network on the validation set and calculate the loss. When we see that the loss on the validation set does not decrease anymore, we know that overfitting happens. This is best illustrated in this [image from Wikipedia](https://en.wikipedia.org/wiki/Overfitting#/media/File:Overfitting_svg.svg). 
+  
+The distribution of images of different levels in the training set provided by Kaggle was very uneven. More than half of the images were of healthy eyes:
+
+| Level | Number of images | Percentage |
+| 0	| 25810 | 73.48% |
+| 1 | 2443 | 6.95% |
+| 2 | 5292 | 15.07% |
+| 3 | 873 | 2.49% |
+| 4 | 708 | 2.02% |
+
+Neural networks seem to be very sensitive to this kind of distributions. Our very first neural network (using softmax classification) was randomly giving labels 0 and 2 to almost all images (which brought a kappa score 0.138). So we had to make the classes more or less equal. Here we did couple of trivial mistakes.
+
+At first we augmented the dataset by creating lots of rotations (multiples of 30 degrees, 12 versions of each image) and created a dataset of around 100K images with equally distributed classes. So we took 36 times more versions of images of level 4 than of images of level 0. As we had only 12 versions of each image, we took every image 3 times. Finally, we separated the training and validation sets _after_ these augmentations. After training 88000 iterations (with batch size 2, we were still on GeForce 550 Ti) we had 0.55 kappa score on our validation set. But on Kaggle's test set the score was only 0.23. So we had a terrible overfitting and didn't detect it locally.  
+
+The most important point here, as I understand it, is that the separation of training and validation sets should have been done _before_ the data augmentation. In our case we had different rotations of the same image in both sets, which didn't allow us to detect overfitting.
  
+So later we took 7472 images (21%) as a validation set, and performed the data augmentation on the remaining 27654 images. Validation set had the same ratio of classes as the Kaggle's test set. This is important for choosing the best model: validation set should be similar to the test set as much as possible. 
+
+Also we decided to get rid off the rotations by multiples of 30 degrees, as the images were being distorted (we applied rotations _after_ resizing the images). Although after the competition we saw [other contestants](http://jeffreydf.github.io/diabetic-retinopathy-detection/) using such rotations. So maybe this was another mistake.
+
+Then, it turned out that the idea of taking copies of the same image is terrible, because the network overfits the smaller classes (like level 3 and level 4) and it is hard to notice that just by looking at validation loss values, because the corresponding classes are very small in the validation set. We identified this problem just 2 weeks before the competition deadline by carefully visualizing neuron activations on training and validation sets:
+
+|![Just the green channel: _(g)_](/public/2015-08-15/3-4-overfit.png "Just the green channel: _(g)_") |
+| --- |
+| Every dot corresponds to one image. Blue dots are from the training set, orange dots are from the validation set. _x_ axis is the activation of a top layer neuron. _y_ axis is the original label (0 to 4). Basically there is no overfitting for the images of level 0, 1 or 2: the activations are very similar. But the overfitting of the images of level 3 and 4 is obvious. Training samples are concentrated around fixed values, while validation samples are spread widely | 
+
+Finally we decided to train a network to differentiate between two classes only: images of level 0 and 1 versus images of level 2, 3 and 4. The ratio of the images in these classes was 4:1. We augmented the training set only by vertical flipping and rotating by 180 degrees. We took all 4 versions of each image of the second class and we randomly took one of the 4 versions of each image of the first class. This way we ended up with a training set of two equal classes. 
+ 
+Later we wanted to train a classifier which would differentiate level 0 images from level 1 images only, but the networks we tried didn't work at all. Another classifier we used to differentiate between level 2 and level 3 + level 4 images actually learned something, but we couldn't increase the overall kappa score based on that. More on this later.
+  
 ## Convolution network architecture
+
+Our findings (a list)
+ReLU (Youtube video of googlers) 
 
 ## Loss function
 
