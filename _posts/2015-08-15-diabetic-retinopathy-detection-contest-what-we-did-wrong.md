@@ -135,6 +135,10 @@ Some observations related to the network architecture:
 * Number of filters in the convolutional layers are not very important. Difference between, say, 20 and 40 layers is very little
 * Dropout helps fight overfitting (we used 50% probability everywhere)
 
+Below are the 40 filters of the first convolutional layer of our best model. They don't seem to be very meaningful:
+
+![Filters of the 1st convolutional layer](/public/2015-08-15/convolutional-filters.png "Filters of the 1st convolutional layer")
+
 ## Loss function
 
 ## Preparing submissions, attempts to ensemble
