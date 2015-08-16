@@ -98,9 +98,10 @@ Later we wanted to train a classifier which would differentiate level 0 images f
 
 After preparing the list of files for the training and validation sets, we used a tool bundled with Caffe to create a LevelDB database from the directory of images. Caffe prefers to read from LevelDB rather than from directory:
 
-```bash
+{% highlight bash %}
 ../build/tools/convert_imageset -backend=leveldb -gray=true -shuffle=true /data/train.g/ train.g.01v234.txt /leveldb/train.g.01v234
-```
+
+{% endhighlight %}
 
 `gray` is set to `true` because we use one channel images and `shuffle` is required to properly shuffle the images before importing into the database.
   
@@ -116,6 +117,7 @@ Almost all other contestants used the other famous approach, with multiple conse
 Here is the structure of our network:
 
 | Nr| Type	| Batches| Channels | Width | Height| Kernel size / stride |
+| - | ----	| --: | ---: | ---: | ---: | --- |
 | 0 | Input	| 20	| 1 		| 512	| 512	| 			| 
 | 1	| Conv	| 20	| 40		| 506	| 506	| 7x7 / 1	|
 | 2	| ReLU	| 20	| 40		| 506	| 506	| 			|
@@ -163,13 +165,13 @@ When we switched to 0,1 vs 2,3,4 classification, I thought 2-neuron softmax woul
 
 We logged the output of Caffe into a file, then plotted the graphs of training and validation losses using a [Python script written](https://github.com/YerevaNN/Caffe-python-tools/blob/master/plot_loss.py) by Hrayr:
 
-```bash
+{% highlight bash %}
 build/tools/caffe train -solver=solver.prototxt &> log_g_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt
 
 python plot_loss.py log_g_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt
-```
+{% endhighlight %}
 
-The script allows to print multiple logs on the same image and uses `moving average` to make the graph look smoother. It correctly aligns the graphs even if the log does not start from the first iteration (in case the training is resumed from a Caffe snapshot). For example, in the plot below `train 1` and `val 1` correspond to the model described in the previous section with `weight decay=0`, `train 2` and `val 2` correspond to the model which started from the 48000th iteration of the previous model but used `weight decay=0.0015`. The best kappa score was obtained on 81000th iteration of the second model.
+The script allows to print multiple logs on the same image and uses `moving average` to make the graph look smoother. It correctly aligns the graphs even if the log does not start from the first iteration (in case the training is resumed from a Caffe snapshot). For example, in the plot below `train 1` and `val 1` correspond to the model described in the previous section with `weight decay=0`, `train 2` and `val 2` correspond to the model which started from the 48000th iteration of the previous model but used `weight decay=0.0015`. The best kappa score was obtained on 81000th iteration of the second model. Since that we observe overfitting.
  
 ![Training and validation losses for our best model](/public/2015-08-15/log_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt.png "Training and validation losses for our best model")
 
