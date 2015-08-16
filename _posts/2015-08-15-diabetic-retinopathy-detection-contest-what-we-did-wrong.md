@@ -3,7 +3,7 @@ layout: post
 title: Diabetic retinopathy detection contest. What we did wrong
 ---
 
-After watching the [awesome video course by Hugo Larochelle](https://www.youtube.com/playlist?list=PL6Xpj9I5qXYEcOhn7TqghAJ6NAPrNmUBH) on neural nets (more on this in the [previous post]({% post_url 2015-07-30-getting-started-with-neural-networks %})) we decided to test our knowledge on some computer vision contest. We looked at [Kaggle](https://www.kaggle.com/competitions) and the only active competition related to computer vision (except for the [digit recognizer contest](https://www.kaggle.com/c/digit-recognizer), for which lots of perfect out-of-the-box solutions exist) was the [Diabetic retinopathy detection contest](https://www.kaggle.com/c/diabetic-retinopathy-detection). This was probably quite hard to become our very first project, but nevertheless we decided to try. The team included [Karen](https://www.linkedin.com/in/mahnerak), [Tigran](https://www.linkedin.com/in/galstyantik), [Hrayr](https://github.com/Harhro94), [Narek](https://www.linkedin.com/pub/narek-hovsepyan/86/b35/380) (1st to 3rd year bachelor students) and [me](https://github.com/Hrant-Khachatrian) (PhD student). Long story short, we finished at the [82nd place](https://www.kaggle.com/c/diabetic-retinopathy-detection/leaderboard), and in this post I will describe in details what we did and what mistakes we made. We hope this will be interesting for those who just start to play with neural networks. Also we hope to get feedback from experts and other participants.
+After watching the [awesome video course by Hugo Larochelle](https://www.youtube.com/playlist?list=PL6Xpj9I5qXYEcOhn7TqghAJ6NAPrNmUBH) on neural nets (more on this in the [previous post]({% post_url 2015-07-30-getting-started-with-neural-networks %})) we decided to test our knowledge on some computer vision contest. We looked at [Kaggle](https://www.kaggle.com/competitions) and the only active competition related to computer vision (except for the [digit recognizer contest](https://www.kaggle.com/c/digit-recognizer), for which lots of perfect out-of-the-box solutions exist) was the [Diabetic retinopathy detection contest](https://www.kaggle.com/c/diabetic-retinopathy-detection). This was probably quite hard to become our very first project, but nevertheless we decided to try. The team included [Karen](https://www.linkedin.com/in/mahnerak), [Tigran](https://www.linkedin.com/in/galstyantik), [Hrayr](https://github.com/Harhro94), [Narek](https://www.linkedin.com/pub/narek-hovsepyan/86/b35/380) (1st to 3rd year bachelor students) and [me](https://github.com/Hrant-Khachatrian) (PhD student). Long story short, we finished at the [82nd place](https://www.kaggle.com/c/diabetic-retinopathy-detection/leaderboard) out of 661 participants, and in this post I will describe in details what we did and what mistakes we made. All required files are on these 2 [github](https://github.com/YerevaNN/Caffe-python-tools) [repositories](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection). We hope this will be interesting for those who just start to play with neural networks. Also we hope to get feedback from experts and other participants.
 
 ## Contents
 {:.no_toc}
@@ -189,11 +189,29 @@ In order to convert the neuron activations to predicted levels we need to determ
 Note that we calculate the kappa scores for the validation set, although there is a risk to overfit the validation set. Ideally we should choose those thresholds which attain maximum kappa score on the train set. But, in practice, the thresholds that maximize the kappa score on validation set perform better on the test set, mainly because the network has already overfit the training set!
 
 ## Attempts to ensemble
+Usually it is possible to improve the scores by merging several models. This is called [ensembling](https://en.wikipedia.org/wiki/Ensemble_learning). For example the 3rd place winners of this Kaggle contest have merged the results of 9 convolutional networks.
+ 
+We developed couple of ways to merge the results from two networks, but they didn't work well for us. They gave very small improvements (less than 0.01) only when both networks gave similar kappa scores. When one network was clearly stronger than the other one, the ensemble didn't help at all. One of our ensemble methods was an extension of the "thresholding" method described in the previous section to 2 dimensions. We plot the images on a 2D plane in a way that each of the coordinates corresponds to a neuron activation of one model. Then we looked for random lines that split the plane in a way that maximizes the kappa score. We tried two methods of splitting the plane which are demonstrated below:
+
+| ![Ensemble of two networks, threshold lines are diagonal](/public/2015-08-15/model-merge-diagonals.png "Ensemble of two networks, threshold lines are diagonal") | ![Ensemble of two networks, threshold curves are perpendicular lines](/public/2015-08-15/model-merge-lines.png "Ensemble of two networks, threshold curves are perpendicular lines") |
+
+We didn't try to merge more than 2 networks at once. Probably this was another mistake.
+
+The only method of ensembling that worked for us was to take an average over 4 rotated / flipped versions of the images. We also tried to take minimum, maximum and harmonic mean of the neuron activations. Minimum and maximum brought 0.01 improvement to the kappa score, while harmonic and arithmetic means brought 0.02 improvement. The best result we achieved used the arithmetic mean. Note that this required to have 4 versions of test images (which took 2 days to rotate / flip) and to run the network on all versions (which took another day).
+
+All these experiments can be replicated in Mathematica by using the script `main.nb` and the required CSV files that are [available on Github](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/tree/master/mathematica).
 
 Finally, note that Mathematica is the only non-free software used in the whole training process. We believe it is better to keep the ecosystem clean :) IPython seems to be a good alternative.
 
-
 ## More on this contest
+Many contestants have published their solutions. Here are the ones I could find. Let me know if I missed something.
+
+* 1st place: [Min-Pooling](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/15801/competition-report-min-pooling-and-thank-you) kappa = 0.84958
+* 2nd place: [o_O team](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/15807/team-o-o-competition-report-and-code) kappa = 0.84479
+* 3rd place: [Reformed Gamblers](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/15845/3rd-place-solution-report/88992#post88992) kappa = 0.83937 
+* 5th place: [Jeffrey De Fauw](http://jeffreydf.github.io/diabetic-retinopathy-detection/) kappa = 0.82899
+* 20th place: [Ilya Kavalerov](http://ilyakava.tumblr.com/post/125230881527/my-1st-kaggle-convnet-getting-to-3rd-percentile) kappa = 0.76523
+* 46th place: [Niko Gamulin](https://nikogamulin.github.io/2015/07/31/Diabetic-retinopathy-detection-with-convolutional-neural-network.html) used Caffe on GTX 980 GPU (just like us) but OxfordNet architecture. Kappa = 0.63129
 
 ## Acknowledgements
 
