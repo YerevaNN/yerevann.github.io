@@ -15,7 +15,7 @@ After watching the [awesome video course by Hugo Larochelle](https://www.youtube
 
 Each eye of the patient can be in one of the 5 levels: from 0 to 4, where 0 corresponds to the healthy state and 4 is the most severe state. Different eyes of the same person can be at different levels (although some contestants managed to leverage the fact that two eyes are not completely independent). Contestants [were given](https://www.kaggle.com/c/diabetic-retinopathy-detection/data) 35126 JPEG images of retinas for training (32.5GB), 53576 images for testing (49.6GB) and a CSV file where level of the disease is written for the train images. The goal was to create another CSV file where disease levels are written for each of the test images. Contestants could submit maximum 5 CSV files per day for evaluation. 
 
-|![Healthy eye: level 0](/public/2015-08-15/eye-0.jpeg "Healthy eye: level 0") | ![Severe state: level 4](/public/2015-08-15/eye-4.jpeg "Severe state: level 4") |
+|![Healthy eye: level 0](/public/2015-08-17/eye-0.jpeg "Healthy eye: level 0") | ![Severe state: level 4](/public/2015-08-17/eye-4.jpeg "Severe state: level 4") |
 | --- | --- |
 | Healthy eye: level 0 | Severe state: level 4 | 
 
@@ -33,14 +33,14 @@ Images from the training and test datasets have very different resolutions, aspe
 
 We tried three methods to preprocess the images. First, as suggested by Karen and Tigran, we resized the images and then applied the so called _[charcoal](http://www.imagemagick.org/Usage/transform/#charcoal)_ effect which is basically an edge detector. This highlighted the signs of blood on the retina. One of the challenging problems throughout the contest was to define a naming convention for everything: databases of preprocessed images, convnet descriptions, models, CSV files etc. We used the prefix `edge` for anything which was based on the images preprocessed this way. The best kappa score achieved on this dataset was 0.42.
 
-|![`edge` level 0](/public/2015-08-15/eye-edge-0.jpg "`edge` level 0") | ![`edge` level 3](/public/2015-08-15/eye-edge-3.jpg "`edge` level 3") |
+|![`edge` level 0](/public/2015-08-17/eye-edge-0.jpg "`edge` level 0") | ![`edge` level 3](/public/2015-08-17/eye-edge-3.jpg "`edge` level 3") |
 | --- | --- |
 | Preprocessed image _(edge)_ level 0 | Preprocessed image _(edge)_ level 3 | 
 
 But later we noticed that this method makes the dirt on lens or other optical issues appear similar to a blood, and it really confused our neural networks. The following two images are of healthy eyes (level 0), but both were recognized by almost all our models as level 4.
 
-|![healthy eye](/public/2015-08-15/orig-35297_left-0.jpeg "healthy eye") | ![`edge`, recognized as level 4](/public/2015-08-15/edge-35297_left-0.jpeg "`edge`, recognized as level 4") |
-|![healthy eye](/public/2015-08-15/orig-44330_left-0.jpeg "healthy eye") | ![`edge`, recognized as level 4](/public/2015-08-15/edge-44330_left-0.jpeg "`edge`, recognized as level 4") |
+|![healthy eye](/public/2015-08-17/orig-35297_left-0.jpeg "healthy eye") | ![`edge`, recognized as level 4](/public/2015-08-17/edge-35297_left-0.jpeg "`edge`, recognized as level 4") |
+|![healthy eye](/public/2015-08-17/orig-44330_left-0.jpeg "healthy eye") | ![`edge`, recognized as level 4](/public/2015-08-17/edge-44330_left-0.jpeg "`edge`, recognized as level 4") |
 | --- | --- |
 | Original images of healthy eyes | Preprocessed versions _(edge)_ recognized as level 4 |
 
@@ -48,7 +48,7 @@ So we decided to avoid using filters on the images, to leave all the work to the
 
 Finally we tried to apply the [_equalize_](http://www.imagemagick.org/Usage/color_mods/#equalize) filter on top of the green channel, which makes the histogram of the image uniform. The best kappa score we managed to get on the dataset preprocessed this way was only 0.4. We used prefix `ge` for these images.
  
-|![Just the green channel: g](/public/2015-08-15/g-99_left-3.jpeg "Just the green channel: g") | ![Histogram equalization on top of the green channel: ge](/public/2015-08-15/ge-99_left-3.jpeg "Histogram equalization on top of the green channel: ge") |
+|![Just the green channel: g](/public/2015-08-17/g-99_left-3.jpeg "Just the green channel: g") | ![Histogram equalization on top of the green channel: ge](/public/2015-08-17/ge-99_left-3.jpeg "Histogram equalization on top of the green channel: ge") |
 | --- | --- |
 | Just the green channel: `g` | Histogram equalization on top of the green channel: `ge` |
  
@@ -88,7 +88,7 @@ Also we decided to get rid off the rotations by multiples of 30 degrees, as the 
 
 Then, it turned out that the idea of taking copies of the same image is terrible, because the network overfits the smaller classes (like level 3 and level 4) and it is hard to notice that just by looking at validation loss values, because the corresponding classes are very small in the validation set. We identified this problem just 2 weeks before the competition deadline by carefully visualizing neuron activations on training and validation sets:
 
-|![Blue dots are from the training set, orange dots are from the validation set. x axis is the activation of a top layer neuron. y axis is the original label (0 to 4)](/public/2015-08-15/3-4-overfit.png "Blue dots are from the training set, orange dots are from the validation set. x axis is the activation of a top layer neuron. y axis is the original label (0 to 4)") |
+|![Blue dots are from the training set, orange dots are from the validation set. x axis is the activation of a top layer neuron. y axis is the original label (0 to 4)](/public/2015-08-17/3-4-overfit.png "Blue dots are from the training set, orange dots are from the validation set. x axis is the activation of a top layer neuron. y axis is the original label (0 to 4)") |
 | --- |
 | Every dot corresponds to one image. Blue dots are from the training set, orange dots are from the validation set. `x` axis is the activation of a top layer neuron. `y` axis is the original label (0 to 4). Basically there is no overfitting for the images of level 0, 1 or 2: the activations are very similar. But the overfitting of the images of level 3 and 4 is obvious. Training samples are concentrated around fixed values, while validation samples are spread widely | 
 
@@ -149,7 +149,7 @@ Some observations related to the network architecture:
 
 Below are the 40 filters of the first convolutional layer of our best model (visualization code is adapted from [here](http://nbviewer.ipython.org/github/BVLC/caffe/blob/master/examples/00-classification.ipynb)). They don't seem to be very meaningful:
 
-![Filters of the 1st convolutional layer](/public/2015-08-15/convolutional-filters.png "Filters of the 1st convolutional layer")
+![Filters of the 1st convolutional layer](/public/2015-08-17/convolutional-filters.png "Filters of the 1st convolutional layer")
 
 I tried to use dropout on convolutional layers as well, but couldn't make the network learn anything. The loss was quickly becoming `nan`. Probably the learning rate should have been very different...  
 
@@ -173,7 +173,7 @@ python plot_loss.py log_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-l
 
 The script allows to print multiple logs on the same image and uses `moving average` to make the graph look smoother. It correctly aligns the graphs even if the log does not start from the first iteration (in case the training is resumed from a Caffe snapshot). For example, in the plot below `train 1` and `val 1` correspond to the model described in the previous section with `weight decay=0`, `train 2` and `val 2` correspond to the model which started from the 48000th iteration of the previous model but used `weight decay=0.0015`. The best kappa score was obtained on 81000th iteration of the second model. Since that we observe overfitting. 
  
-![Training and validation losses for our best model](/public/2015-08-15/log_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt.png "Training and validation losses for our best model")
+![Training and validation losses for our best model](/public/2015-08-17/log_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt.png "Training and validation losses for our best model")
 
 Note that the validation loss is usually lower than the training loss. The reason is that the classes are equal in the training set and are far from being equal in the validation set. So the training and validation losses cannot be compared.
 
@@ -182,7 +182,7 @@ After training the models we used a [Python script](https://github.com/YerevaNN/
  
 I use Mathematica mainly because of its nice visualizations. Here is one of them: the `x` axis is the activation of the single neuron of the last layer, and the graphs present the percentages of the images of each particular label that have `x` activation. Ideally the graphs corresponding to different labels should be clearly separable by vertical lines. Unfortunately that's not the case, which visually explains why the kappa score is so low.
 
-![Percentage of images per given neuron activation](/public/2015-08-15/best-model-graphs.png "Percentage of images per given neuron activation")
+![Percentage of images per given neuron activation](/public/2015-08-17/best-model-graphs.png "Percentage of images per given neuron activation")
 
 In order to convert the neuron activations to predicted levels we need to determine 4 "threshold" numbers. These graphs show that it's not obvious how to choose these 4 numbers in order to maximize the kappa score. So we take, say, 1000 random 4-tuples of numbers between minimum and maximum activations of the neuron, and calculate the kappa score for each of the tuples. Then we take the 4-tuple for which the kappa was maximal, and use these numbers as thresholds for the images in the test set.
  
@@ -193,7 +193,7 @@ Usually it is possible to improve the scores by merging several models. This is 
  
 We developed couple of ways to merge the results from two networks, but they didn't work well for us. They gave very small improvements (less than 0.01) only when both networks gave similar kappa scores. When one network was clearly stronger than the other one, the ensemble didn't help at all. One of our ensemble methods was an extension of the "thresholding" method described in the previous section to 2 dimensions. We plot the images on a 2D plane in a way that each of the coordinates corresponds to a neuron activation of one model. Then we looked for random lines that split the plane in a way that maximizes the kappa score. We tried two methods of splitting the plane which are demonstrated below. Each blue dot corresponds to an image of label 0, orange dots correspond of images having label 4.
 
-| ![Ensemble of two networks, threshold lines are diagonal](/public/2015-08-15/model-merge-diagonals.png "Ensemble of two networks, threshold lines are diagonal") | ![Ensemble of two networks, threshold curves are perpendicular lines](/public/2015-08-15/model-merge-lines.png "Ensemble of two networks, threshold curves are perpendicular lines") |
+| ![Ensemble of two networks, threshold lines are diagonal](/public/2015-08-17/model-merge-diagonals.png "Ensemble of two networks, threshold lines are diagonal") | ![Ensemble of two networks, threshold curves are perpendicular lines](/public/2015-08-17/model-merge-lines.png "Ensemble of two networks, threshold curves are perpendicular lines") |
 
 We didn't try to merge more than 2 networks at once. Probably this was another mistake.
 
@@ -215,8 +215,11 @@ Many contestants have published their solutions. Here are the ones I could find.
 
 After the contest we tried to use leaky ReLUs, something we just didn't think of during the contest. The results are not promising. Here are the plots of the validation loss with negative slope values (`ns`) 0, 0.01, 0.33 and 0.5 respectively:
  
-![Validation loss using leaky ReLU activations](/public/2015-08-15/leaky-ReLU.png "Validation loss using leaky ReLU activations")
+![Validation loss using leaky ReLU activations](/public/2015-08-17/leaky-ReLU.png "Validation loss using leaky ReLU activations")
+
+Finally, Hrayr suggested to use different learning rates for different convolutional layers (Caffe supports this by specifying multiplication constants per layer). He used larger coefficients (12) for the first layers than for the top layers. The full prototxt file is on [Github](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/g_01v234_32r-2-64r-2-64r-2-128r-2-128r-2-256r-2-512rd0.5-256rd0.5_manual_learning_rates.prototxt). This network allowed to get up to 0.52 kappa score on the local validation set. We didn't try to run it on test images, although in almost all cases our scores on private leaderboard were higher than the scores on local validation sets. 
 
 ## Acknowledgements
+We would like to express gratitude to Hugo Larochelle for his excellent video course on neural networks. After watching the videos we could easily understand almost all the terms in Caffe documentation. 
 
-_to be continued_
+We would like to thank the organizers of the contest for a great competition and the contestants for helpful discussions in forums and solutions. We learned a lot from this contest.
