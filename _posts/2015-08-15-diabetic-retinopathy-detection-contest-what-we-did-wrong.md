@@ -191,7 +191,7 @@ Note that we calculate the kappa scores for the validation set, although there i
 ## Attempts to ensemble
 Usually it is possible to improve the scores by merging several models. This is called [ensembling](https://en.wikipedia.org/wiki/Ensemble_learning). For example the 3rd place winners of this Kaggle contest have merged the results of 9 convolutional networks.
  
-We developed couple of ways to merge the results from two networks, but they didn't work well for us. They gave very small improvements (less than 0.01) only when both networks gave similar kappa scores. When one network was clearly stronger than the other one, the ensemble didn't help at all. One of our ensemble methods was an extension of the "thresholding" method described in the previous section to 2 dimensions. We plot the images on a 2D plane in a way that each of the coordinates corresponds to a neuron activation of one model. Then we looked for random lines that split the plane in a way that maximizes the kappa score. We tried two methods of splitting the plane which are demonstrated below:
+We developed couple of ways to merge the results from two networks, but they didn't work well for us. They gave very small improvements (less than 0.01) only when both networks gave similar kappa scores. When one network was clearly stronger than the other one, the ensemble didn't help at all. One of our ensemble methods was an extension of the "thresholding" method described in the previous section to 2 dimensions. We plot the images on a 2D plane in a way that each of the coordinates corresponds to a neuron activation of one model. Then we looked for random lines that split the plane in a way that maximizes the kappa score. We tried two methods of splitting the plane which are demonstrated below. Each blue dot corresponds to an image of label 0, orange dots correspond of images having label 4.
 
 | ![Ensemble of two networks, threshold lines are diagonal](/public/2015-08-15/model-merge-diagonals.png "Ensemble of two networks, threshold lines are diagonal") | ![Ensemble of two networks, threshold curves are perpendicular lines](/public/2015-08-15/model-merge-lines.png "Ensemble of two networks, threshold curves are perpendicular lines") |
 
@@ -201,17 +201,21 @@ The only method of ensembling that worked for us was to take an average over 4 r
 
 All these experiments can be replicated in Mathematica by using the script `main.nb` and the required CSV files that are [available on Github](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/tree/master/mathematica).
 
-Finally, note that Mathematica is the only non-free software used in the whole training process. We believe it is better to keep the ecosystem clean :) IPython seems to be a good alternative.
+Finally, note that Mathematica is the only non-free software used in the whole training process. We believe it is better to keep the ecosystem clean :) We will probably use [IPython](http://ipython.org/) next time.
 
 ## More on this contest
-Many contestants have published their solutions. Here are the ones I could find. Let me know if I missed something.
+Many contestants have published their solutions. Here are the ones I could find. Let me know if I missed something. Most of the solution are heavily influenced by the winner method of the plankton classification contest.
 
-* 1st place: [Min-Pooling](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/15801/competition-report-min-pooling-and-thank-you) kappa = 0.84958
-* 2nd place: [o_O team](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/15807/team-o-o-competition-report-and-code) kappa = 0.84479
-* 3rd place: [Reformed Gamblers](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/15845/3rd-place-solution-report/88992#post88992) kappa = 0.83937 
-* 5th place: [Jeffrey De Fauw](http://jeffreydf.github.io/diabetic-retinopathy-detection/) kappa = 0.82899
-* 20th place: [Ilya Kavalerov](http://ilyakava.tumblr.com/post/125230881527/my-1st-kaggle-convnet-getting-to-3rd-percentile) kappa = 0.76523
+* 1st place: [Min-Pooling](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/15801/competition-report-min-pooling-and-thank-you) used OpenCV to preprocess the images, augmented the dataset by scaling, skewing and rotating (and notably not by changing colors), trained several networks on his own [SparseConvNet](https://github.com/btgraham/SparseConvNet) library and used random forests to combine predictions from two eyes of the same person. Kappa = 0.84958
+* 2nd place: [o_O team](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/15807/team-o-o-competition-report-and-code) used Theano, Lasagne, nolearn to train OxfordNet-like network on minimal preprocessed images. They have heavily augmented the dataset. They note the importance of using larger images to achieve high scores. Kappa = 0.84479
+* 3rd place: [Reformed Gamblers team](https://www.kaggle.com/c/diabetic-retinopathy-detection/forums/t/15845/3rd-place-solution-report) combined results of 9 convolutional networks (OxfordNet-like and others) with leaky ReLU activations and non-trivial loss functions. They used Torch on multiple GPUs. Kappa = 0.83937 
+* 5th place: [Jeffrey De Fauw](http://jeffreydf.github.io/diabetic-retinopathy-detection/) used Theano to train OxfordNet-like network with leaky ReLU activations on significantly augmented dataset. He has also implemented a smooth approximation of kappa metric and used it as a loss layer. Well written blog post. Kappa = 0.82899
+* 20th place: [Ilya Kavalerov](http://ilyakava.tumblr.com/post/125230881527/my-1st-kaggle-convnet-getting-to-3rd-percentile), again Theano, OxfordNet, good augmentation, non-obvious loss function. Interesting read. Kappa = 0.76523
 * 46th place: [Niko Gamulin](https://nikogamulin.github.io/2015/07/31/Diabetic-retinopathy-detection-with-convolutional-neural-network.html) used Caffe on GTX 980 GPU (just like us) but OxfordNet architecture. Kappa = 0.63129
+
+After the contest we tried to use leaky ReLUs, something we just didn't think of during the contest. The results are not promising. Here are the plots of the validation loss with negative slope values (`ns`) 0, 0.01, 0.33 and 0.5 respectively:
+ 
+![Validation loss using leaky ReLU activations](/public/2015-08-15/leaky-ReLU.png "Validation loss using leaky ReLU activations")
 
 ## Acknowledgements
 
