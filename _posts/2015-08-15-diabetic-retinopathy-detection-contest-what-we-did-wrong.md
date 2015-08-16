@@ -26,7 +26,7 @@ It was obvious that we were going to use [convolutional neural networks](https:/
 
 We didn't have a computer with CUDA-enabled GPU in the university, but our friends at [Cyclop Studio](http://cyclopstudio.com/) donated us an Intel Core i5 computer with 4GB RAM and [NVidia GeForce GTX 550 TI](http://www.geforce.com/hardware/desktop-gpus/geforce-gtx-550ti/specifications) card. 550 TI has a 1GB of memory which forced us to use very small batch sizes for the neural network. Later we switched to [GeForce GTX 980](http://www.geforce.com/hardware/desktop-gpus/geforce-gtx-980/specifications) with 4GB memory, which was completely fine for us.
 
-Karen and Tigran managed to [install Caffe on Ubuntu](http://caffe.berkeleyvision.org/install_apt.html) and make it work with CUDA, which was enough to start the training. Later Narek and Hrayr found out how to play with Caffe models [using Python](https://github.com/BVLC/caffe/tree/master/python/caffe), so we can run our models on the test set.
+Karen and Tigran managed to [install Caffe on Ubuntu](http://caffe.berkeleyvision.org/install_apt.html) and make it work with CUDA, which was enough to start the training. Later Narek and Hrayr found out how to play with Caffe models [using Python](https://github.com/BVLC/caffe/tree/master/python/caffe), so we can run our models on the test set. Karen has [connected Cloud9 to the server](https://docs.c9.io/docs/running-your-own-ssh-workspace), and we could work remotely through a web interface.
 
 ## Image preprocessing
 Images from the training and test datasets have very different resolutions, aspect ratios, colors, are cropped in various ways, some are of very low quality, are out of focus etc. Neural networks require a fixed input size, so we had to resize / crop all of them to some fixed dimensions. Karen and Tigran looked at many sample images and decided that optimal resolution which preserves the details required for classification is 512x512. We thought that in 256x256 we might lose the small details that differ healthy eye images from level 1 images. In fact, by the end of the competition we saw that our networks cannot differentiate between level 0 and 1 images even with 512x512, so probably we could safely work on 256x256 from the very beginning (which would be much faster to train). All preprocessing was done using [imagemagick](http://www.imagemagick.org/).
@@ -90,7 +90,7 @@ Then, it turned out that the idea of taking copies of the same image is terrible
 
 |![Blue dots are from the training set, orange dots are from the validation set. x axis is the activation of a top layer neuron. y axis is the original label (0 to 4)](/public/2015-08-15/3-4-overfit.png "Blue dots are from the training set, orange dots are from the validation set. x axis is the activation of a top layer neuron. y axis is the original label (0 to 4)") |
 | --- |
-| Every dot corresponds to one image. Blue dots are from the training set, orange dots are from the validation set. _x_ axis is the activation of a top layer neuron. _y_ axis is the original label (0 to 4). Basically there is no overfitting for the images of level 0, 1 or 2: the activations are very similar. But the overfitting of the images of level 3 and 4 is obvious. Training samples are concentrated around fixed values, while validation samples are spread widely | 
+| Every dot corresponds to one image. Blue dots are from the training set, orange dots are from the validation set. `x` axis is the activation of a top layer neuron. `y` axis is the original label (0 to 4). Basically there is no overfitting for the images of level 0, 1 or 2: the activations are very similar. But the overfitting of the images of level 3 and 4 is obvious. Training samples are concentrated around fixed values, while validation samples are spread widely | 
 
 Finally we decided to train a network to differentiate between two classes only: images of level 0 and 1 versus images of level 2, 3 and 4. The ratio of the images in these classes was 4:1. We augmented the training set only by vertical flipping and rotating by 180 degrees. We took all 4 versions of each image of the second class and we randomly took one of the 4 versions of each image of the first class. This way we ended up with a training set of two equal classes. This gave us our best kappa score 0.50. 
  
@@ -117,7 +117,7 @@ Almost all other contestants used the other famous approach, with multiple conse
 Here is the structure of our network:
 
 | Nr| Type	| Batches| Channels | Width | Height| Kernel size / stride |
-| - | ----	| --: | ---: | ---: | ---: | --- |
+| -- | ----	| --: | ---: | ---: | ---: | --- |
 | 0 | Input	| 20	| 1 		| 512	| 512	| 			| 
 | 1	| Conv	| 20	| 40		| 506	| 506	| 7x7 / 1	|
 | 2	| ReLU	| 20	| 40		| 506	| 506	| 			|
@@ -172,7 +172,7 @@ python plot_loss.py log_g_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0
 
 {% endhighlight %}
 
-The script allows to print multiple logs on the same image and uses `moving average` to make the graph look smoother. It correctly aligns the graphs even if the log does not start from the first iteration (in case the training is resumed from a Caffe snapshot). For example, in the plot below `train 1` and `val 1` correspond to the model described in the previous section with `weight decay=0`, `train 2` and `val 2` correspond to the model which started from the 48000th iteration of the previous model but used `weight decay=0.0015`. The best kappa score was obtained on 81000th iteration of the second model. Since that we observe overfitting.
+The script allows to print multiple logs on the same image and uses `moving average` to make the graph look smoother. It correctly aligns the graphs even if the log does not start from the first iteration (in case the training is resumed from a Caffe snapshot). For example, in the plot below `train 1` and `val 1` correspond to the model described in the previous section with `weight decay=0`, `train 2` and `val 2` correspond to the model which started from the 48000th iteration of the previous model but used `weight decay=0.0015`. The best kappa score was obtained on 81000th iteration of the second model. Since that we observe overfitting. Note that the validation loss is usually lower than the training loss. The reason is that the classes are equal in the training set and are far from being equal in the validation set. So the training and validation losses cannot be compared.
  
 ![Training and validation losses for our best model](/public/2015-08-15/log_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt.png "Training and validation losses for our best model")
 
