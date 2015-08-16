@@ -104,28 +104,50 @@ Convolution was done similar to the "traditional" [LeNet architecture](http://ca
 Almost all other contestants used the other famous approach, with multiple consecutive convolutional layers with small kernels before a pooling layer. This was developed by [Karen Simonyan and Andrew Zisserman](http://www.robots.ox.ac.uk/~vgg/research/very_deep/) at Visual Geometry Group, University of Oxford (that's why it is called _VGGNet_ or _OxfordNet_) for the [ImageNet 2014 contest](http://www.image-net.org/challenges/LSVRC/2014/results#clsloc) where they took 1st and 2nd places for localization and classification tasks, respectively. Their approach was popularized by [Andrej Karpathy](http://cs231n.github.io/convolutional-networks/#case) and was successfully used in the [plankton classification contest](http://benanne.github.io/2015/03/17/plankton.html#architecture). I have tried this approach once, but it required significantly more memory and time, so I quickly abandoned it.
 
 Here is the structure of our network:
-| Nr| Type	| Batches| Channels | Width | Height| kernel size / stride
+| Nr| Type	| Batches| Channels | Width | Height| kernel size / stride |
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 0 | Input	| 20	| 1 		| 512	| 512	| 			| 
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 1	| Conv	| 20	| 40		| 506	| 506	| 7x7 / 1	|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 2	| ReLU	| 20	| 40		| 506	| 506	| 			|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 3 | MaxPool|20	| 40		| 253	| 253	| 3x3 / 2	|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 4	| Conv	| 20	| 40		| 249	| 249	| 5x5 / 1	|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 5	| ReLU	| 20	| 40		| 249	| 249	| 			|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 6 | MaxPool|20	| 40		| 124	| 124	| 3x3 / 2	|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 7	| Conv	| 20	| 40		| 120	| 120	| 5x5 / 1	|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 8	| ReLU	| 20	| 40		| 120	| 120	| 			|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 9 | MaxPool|20	| 40		| 60	| 60	| 3x3 / 2	|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 10| Conv	| 20	| 40		| 56	| 56	| 5x5 / 1	|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 11| ReLU	| 20	| 40		| 56	| 56	| 			|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 12| MaxPool|20	| 40		| 14	| 14	| 4x4 / 4	|
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 13| Dense |20	| 256		|  |  |  |
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 14| ReLU	|20	| 256		|  |  |  |
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 15| Dropout|20	| 256		|  |  |  |
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 16| Dense |20	| 256		|  |  |  |
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 17| ReLU	|20	| 256		|  |  |  |
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 18| Dropout|20	| 256		|  |  |  |
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 19| Dense|20	| 1		|  |  |  |
+| --| ----	| -------| -------- | ----- | ------| --------- |
 | 20| Euclidean Loss|1	| 1		|  |  |  |
+| --| ----	| -------| -------- | ----- | ------| --------- |
 
 
 Our findings (a list)
