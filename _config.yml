@@ -8,7 +8,7 @@ relative_permalinks: true
 title:               YerevaNN
 tagline:             Blog on neural networks
 url:                 http://yerevann.github.io/
-paginate:            1
+paginate:            5
 baseurl:             ""
 
 # Assets
