@@ -63,7 +63,7 @@ We applied very limited transformations only. For every image we created 4 sampl
 We believe that we spent way too little time on data augmentation. All other contestants we have seen use much more sophisticated transformations. Probably this was our most important mistake.
 
 ## Choosing training / validation sets
-There are two reasons to train the network only on a subset of the train dataset provided by Kaggle. First reason is to be able to compare different models. We need to choose the model which generalizes best to the unseen data, not the one which performs best on the data it has been trained on. So we train various models on some subset of the dataset (again called a _training set_), then compare their performance on the other subset (called a _validation set_) and pick the one which works better on the latter. 
+There are two reasons to train the networks only on a subset of the train dataset provided by Kaggle. First reason is to be able to compare different models. We need to choose the model which generalizes best to the unseen data, not the one which performs best on the data it has been trained on. So we train various models on some subset of the dataset (again called a _training set_), then compare their performance on the other subset (called a _validation set_) and pick the one which works better on the latter. 
 
 The second reason is to detect overfitting while training. During the training we sometimes (in Caffe this is configured by the [_test_interval_ parameter](http://caffe.berkeleyvision.org/tutorial/solver.html)) run the network on the validation set and calculate the loss. When we see that the loss on the validation set does not decrease anymore, we know that overfitting happens. This is best illustrated in this [image from Wikipedia](https://en.wikipedia.org/wiki/Overfitting#/media/File:Overfitting_svg.svg). 
   
@@ -88,15 +88,45 @@ Also we decided to get rid off the rotations by multiples of 30 degrees, as the 
 
 Then, it turned out that the idea of taking copies of the same image is terrible, because the network overfits the smaller classes (like level 3 and level 4) and it is hard to notice that just by looking at validation loss values, because the corresponding classes are very small in the validation set. We identified this problem just 2 weeks before the competition deadline by carefully visualizing neuron activations on training and validation sets:
 
-|![Just the green channel: _(g)_](/public/2015-08-15/3-4-overfit.png "Just the green channel: _(g)_") |
+|![Blue dots are from the training set, orange dots are from the validation set. x axis is the activation of a top layer neuron. y axis is the original label (0 to 4)](/public/2015-08-15/3-4-overfit.png "Blue dots are from the training set, orange dots are from the validation set. x axis is the activation of a top layer neuron. y axis is the original label (0 to 4)") |
 | --- |
 | Every dot corresponds to one image. Blue dots are from the training set, orange dots are from the validation set. _x_ axis is the activation of a top layer neuron. _y_ axis is the original label (0 to 4). Basically there is no overfitting for the images of level 0, 1 or 2: the activations are very similar. But the overfitting of the images of level 3 and 4 is obvious. Training samples are concentrated around fixed values, while validation samples are spread widely | 
 
-Finally we decided to train a network to differentiate between two classes only: images of level 0 and 1 versus images of level 2, 3 and 4. The ratio of the images in these classes was 4:1. We augmented the training set only by vertical flipping and rotating by 180 degrees. We took all 4 versions of each image of the second class and we randomly took one of the 4 versions of each image of the first class. This way we ended up with a training set of two equal classes. 
+Finally we decided to train a network to differentiate between two classes only: images of level 0 and 1 versus images of level 2, 3 and 4. The ratio of the images in these classes was 4:1. We augmented the training set only by vertical flipping and rotating by 180 degrees. We took all 4 versions of each image of the second class and we randomly took one of the 4 versions of each image of the first class. This way we ended up with a training set of two equal classes. This gave us our best kappa score 0.50. 
  
-Later we wanted to train a classifier which would differentiate level 0 images from level 1 images only, but the networks we tried didn't work at all. Another classifier we used to differentiate between level 2 and level 3 + level 4 images actually learned something, but we couldn't increase the overall kappa score based on that. More on this later.
+Later we wanted to train a classifier which would differentiate level 0 images from level 1 images only, but the networks we tried didn't work at all. Another classifier we used to differentiate between level 2 and level 3 + level 4 images actually learned something, but we couldn't increase the overall kappa score based on that. More on this below.
   
-## Convolution network architecture
+## Convolutional network architecture
+Our best performing [neural network architecture](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5.prototxt) and corresponding [solver](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/best-performing-solver.prototxt) are on Github. _Batch size_ was always fixed to 20 (on GTX 980 card). We used a simple _stochastic gradient descent_ with 0.9 _momentum_ and didn't touch learning rate policy at all (actually it didn't decrease the rate significantly). We started at 0.001 _learning rate_, and sometimes manually decreased it (but not in this particular case which brought the best kappa score). Also in this best performing case we started with 0 _weight decay_, and after the first signs of overfitting (after 48K iterations, which is almost 20 epochs) increased it to 0.0015. 
+
+Convolution was done similar to the "traditional" [LeNet architecture](http://caffe.berkeleyvision.org/gathered/examples/mnist.html): one max pooling layer after every convolution layer, with fully connected layers at the end. 
+
+Almost all other contestants used the other famous approach, with multiple consecutive convolutional layers with small kernels before a pooling layer. This was developed by [Karen Simonyan and Andrew Zisserman](http://www.robots.ox.ac.uk/~vgg/research/very_deep/) at Visual Geometry Group, University of Oxford (that's why it is called _VGGNet_ or _OxfordNet_) for the [ImageNet 2014 contest](http://www.image-net.org/challenges/LSVRC/2014/results#clsloc) where they took 1st and 2nd places for localization and classification tasks, respectively. Their approach was popularized by [Andrej Karpathy](http://cs231n.github.io/convolutional-networks/#case) and was successfully used in the [plankton classification contest](http://benanne.github.io/2015/03/17/plankton.html#architecture). I have tried this approach once, but it required significantly more memory and time, so I quickly abandoned it.
+
+Here is the structure of our network:
+| Nr| Type	| Batches| Channels | Width | Height| kernel size / stride
+| 0 | Input	| 20	| 1 		| 512	| 512	| 			| 
+| 1	| Conv	| 20	| 40		| 506	| 506	| 7x7 / 1	|
+| 2	| ReLU	| 20	| 40		| 506	| 506	| 			|
+| 3 | MaxPool|20	| 40		| 253	| 253	| 3x3 / 2	|
+| 4	| Conv	| 20	| 40		| 249	| 249	| 5x5 / 1	|
+| 5	| ReLU	| 20	| 40		| 249	| 249	| 			|
+| 6 | MaxPool|20	| 40		| 124	| 124	| 3x3 / 2	|
+| 7	| Conv	| 20	| 40		| 120	| 120	| 5x5 / 1	|
+| 8	| ReLU	| 20	| 40		| 120	| 120	| 			|
+| 9 | MaxPool|20	| 40		| 60	| 60	| 3x3 / 2	|
+| 10| Conv	| 20	| 40		| 56	| 56	| 5x5 / 1	|
+| 11| ReLU	| 20	| 40		| 56	| 56	| 			|
+| 12| MaxPool|20	| 40		| 14	| 14	| 4x4 / 4	|
+| 13| Dense |20	| 256		|  |  |  |
+| 14| ReLU	|20	| 256		|  |  |  |
+| 15| Dropout|20	| 256		|  |  |  |
+| 16| Dense |20	| 256		|  |  |  |
+| 17| ReLU	|20	| 256		|  |  |  |
+| 18| Dropout|20	| 256		|  |  |  |
+| 19| Dense|20	| 1		|  |  |  |
+| 20| Euclidean Loss|1	| 1		|  |  |  |
+
 
 Our findings (a list)
 ReLU (Youtube video of googlers) 
