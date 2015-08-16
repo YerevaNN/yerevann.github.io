@@ -99,7 +99,7 @@ Later we wanted to train a classifier which would differentiate level 0 images f
 After preparing the list of files for the training and validation sets, we used a tool bundled with Caffe to create a [LevelDB](http://leveldb.org/) database from the directory of images. Caffe [prefers](http://caffe.berkeleyvision.org/tutorial/data.html) to read from LevelDB rather than from directory:
 
 {% highlight shell %}
-../build/tools/convert_imageset -backend=leveldb -gray=true -shuffle=true /data/train.g/ train.g.01v234.txt /leveldb/train.g.01v234
+./build/tools/convert_imageset -backend=leveldb -gray=true -shuffle=true data/train.g/ train.g.01v234.txt leveldb/train.g.01v234
 
 {% endhighlight %}
 
@@ -117,7 +117,6 @@ Almost all other contestants used the other famous approach, with multiple conse
 Here is the structure of our network:
 
 | Nr| Type	| Batches| Channels | Width | Height| Kernel size / stride |
-| -- | ----	| --: | ---: | ---: | ---: | --- |
 | 0 | Input	| 20	| 1 		| 512	| 512	| 			| 
 | 1	| Conv	| 20	| 40		| 506	| 506	| 7x7 / 1	|
 | 2	| ReLU	| 20	| 40		| 506	| 506	| 			|
@@ -166,7 +165,7 @@ When we switched to 0,1 vs 2,3,4 classification, I thought 2-neuron softmax woul
 We logged the output of Caffe into a file, then plotted the graphs of training and validation losses using a [Python script written](https://github.com/YerevaNN/Caffe-python-tools/blob/master/plot_loss.py) by Hrayr:
 
 {% highlight shell %}
-build/tools/caffe train -solver=solver.prototxt &> log_g_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt
+./build/tools/caffe train -solver=solver.prototxt &> log_g_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt
 
 python plot_loss.py log_g_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt
 
