@@ -95,9 +95,19 @@ Then, it turned out that the idea of taking copies of the same image is terrible
 Finally we decided to train a network to differentiate between two classes only: images of level 0 and 1 versus images of level 2, 3 and 4. The ratio of the images in these classes was 4:1. We augmented the training set only by vertical flipping and rotating by 180 degrees. We took all 4 versions of each image of the second class and we randomly took one of the 4 versions of each image of the first class. This way we ended up with a training set of two equal classes. This gave us our best kappa score 0.50. 
  
 Later we wanted to train a classifier which would differentiate level 0 images from level 1 images only, but the networks we tried didn't work at all. Another classifier we used to differentiate between level 2 and level 3 + level 4 images actually learned something, but we couldn't increase the overall kappa score based on that. More on this below.
+
+After preparing the list of files for the training and validation sets, we used a tool bundled with Caffe to create a LevelDB database from the directory of images. Caffe prefers to read from LevelDB rather than from directory:
+
+```bash
+../build/tools/convert_imageset -backend=leveldb -gray=true -shuffle=true /data/train.g/ train.g.01v234.txt /leveldb/train.g.01v234
+```
+
+`gray` is set to `true` because we use one channel images and `shuffle` is required to properly shuffle the images before importing into the database.
   
+
 ## Convolutional network architecture
-Our best performing [neural network architecture](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5.prototxt) and corresponding [solver](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/best-performing-solver.prototxt) are on Github. _Batch size_ was always fixed to 20 (on GTX 980 card). We used a simple _stochastic gradient descent_ with 0.9 _momentum_ and didn't touch learning rate policy at all (it didn't decrease the rate significantly). We started at 0.001 _learning rate_, and sometimes manually decreased it (but not in this particular case which brought the best kappa score). Also in this best performing case we started with 0 _weight decay_, and after the first signs of overfitting (after 48K iterations, which is almost 20 epochs) increased it to 0.0015. 
+
+Our best performing [neural network architecture](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5.prototxt) and corresponding [solver](https://github.com/YerevaNN/Kaggle-diabetic-retinopathy-detection/blob/master/best-performing-solver.prototxt) are on Github. `Batch size` was always fixed to 20 (on GTX 980 card). We used a simple _stochastic gradient descent_ with 0.9 `momentum` and didn't touch learning rate policy at all (it didn't decrease the rate significantly). We started at 0.001 `learning rate`, and sometimes manually decreased it (but not in this particular case which brought the best kappa score). Also in this best performing case we started with 0 `weight decay`, and after the first signs of overfitting (after 48K iterations, which is almost 20 epochs) increased it to 0.0015. 
 
 Convolution was done similar to the "traditional" [LeNet architecture](http://caffe.berkeleyvision.org/gathered/examples/mnist.html) (developed by [Yann LeCun](http://yann.lecun.com/), who invented the convolutional networks): one max pooling layer after every convolution layer, with fully connected layers at the end. 
 
@@ -130,16 +140,39 @@ Here is the structure of our network:
 
 Some observations related to the network architecture:
 
-* [ReLU activations](https://en.wikipedia.org/wiki/Rectifier_(neural_networks)) on all convolutional and fully connected layers helped a lot, kappa score increased by almost 0.1. It's interesting to note that Christian Szegedy, one of the GoogLeNet developers (which won the classification contest at ImageNet 2014), [expressed an opinion](https://www.youtube.com/watch?v=ySrj_G5gHWI) that the main reason for the deep learning revolution is actually the ReLU function :)
-* 2 fully connected layers (256 neurons each) at the end is better than one fully connected layer. Kappa increased by almost 0.03.
+* [ReLU activations](https://en.wikipedia.org/wiki/Rectifier_(neural_networks)) on all convolutional and fully connected layers helped a lot, kappa score increased by almost 0.1. It's interesting to note that Christian Szegedy, one of the GoogLeNet developers (which won the classification contest at ImageNet 2014), [expressed an opinion](https://www.youtube.com/watch?v=ySrj_G5gHWI) that the main reason for the deep learning revolution happening now is the ReLU function :)
+* 2 fully connected layers (256 neurons each) at the end is better than one fully connected layer. Kappa increased by almost 0.03
 * Number of filters in the convolutional layers are not very important. Difference between, say, 20 and 40 layers is very little
 * Dropout helps fight overfitting (we used 50% probability everywhere)
+* We didn't notice any difference with Local response normalization layers
 
-Below are the 40 filters of the first convolutional layer of our best model. They don't seem to be very meaningful:
+Below are the 40 filters of the first convolutional layer of our best model (visualization code is adapted from [here](http://nbviewer.ipython.org/github/BVLC/caffe/blob/master/examples/00-classification.ipynb)). They don't seem to be very meaningful:
 
 ![Filters of the 1st convolutional layer](/public/2015-08-15/convolutional-filters.png "Filters of the 1st convolutional layer")
 
+I tried to use dropout on convolutional layers as well, but couldn't make the network learn anything. The loss was quickly becoming `nan`. Probably the learning rate should have been very different...  
+
 ## Loss function
+Submissions of this contest were evaluated by the metric called **quadratic weighted kappa**. We found an [Excel code](http://www.real-statistics.com/reliability/weighted-cohens-kappa/) that implements it which helped us to get some intuition. 
+ 
+At the beginning we started to use [softmax loss](http://caffe.berkeleyvision.org/doxygen/classcaffe_1_1SoftmaxWithLossLayer.html) on top of the 5 neurons of the final fully connected layer. Later we decided to use something that will take into account the fact that the order of the labels matters (0 and 1 are closer than 0 and 4). We left only one neuron in the last layer and tried to use [Euclidean loss](http://caffe.berkeleyvision.org/doxygen/classcaffe_1_1EuclideanLossLayer.html). We even tried to "scale" the labels of the images in a way that will make it closer to being "quadratic": we replaced the labels \[0,1,2,3,4\] with \[0,2,3,4,6\]. 
+ 
+Ideally we would like to have a loss function that implements the kappa metric. But we didn't risk to implement a new layer in Caffe. [Jeffrey De Fauw](http://jeffreydf.github.io/diabetic-retinopathy-detection/#the-opening) has implemented some continuous approximation of kappa metric using Theano with a lot of success. 
+ 
+When we switched to 0,1 vs 2,3,4 classification, I thought 2-neuron softmax would be better than Euclidean loss because of the second neuron: it might bring some information that could help to obtain better score. But after some tests I saw that the sum of the activations of the two softmax neurons tends to to 1, so the second neuron does not bring new information. So, the rest of the training was done using Euclidean loss (although I am not sure if that was the best option).
+
+We logged the output of Caffe into a file, then plotted the graphs of training and validation losses using a [Python script written](https://github.com/YerevaNN/Caffe-python-tools/blob/master/plot_loss.py) by Hrayr:
+
+```bash
+build/tools/caffe train -solver=solver.prototxt &> log_g_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt
+
+python plot_loss.py log_g_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt
+```
+
+The script allows to print multiple logs on the same image and uses `moving average` to make the graph look smoother. It correctly aligns the graphs even if the log does not start from the first iteration (in case the training is resumed from a Caffe snapshot). For example, in the plot below `train 1` and `val 1` correspond to the model described in the previous section with `weight decay=0`, `train 2` and `val 2` correspond to the model which started from the 48000th iteration of the previous model but used `weight decay=0.0015`. The best kappa score was obtained on 81000th iteration of the second model.
+ 
+![Training and validation losses for our best model](/public/2015-08-15/log_g_01v234_40r-2-40r-2-40r-2-40r-4-256rd0.5-256rd0.5-wd0-lr0.001.txt.png "Training and validation losses for our best model")
+
 
 ## Preparing submissions, attempts to ensemble
 
