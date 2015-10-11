@@ -5,6 +5,13 @@ title: Spoken language identification with deep convolutional networks
 
 By [Hrayr Harutyunyan](https://github.com/Harhro94)
 
+Recently [TopCoder](https://topcoder.com/) announced a [contest](https://community.topcoder.com/longcontest/?module=ViewProblemStatement&rd=16555&compid=49304)
+to identify the spoken language in audio recordings. I decided to test how well 
+deep convolutional networks will perform on this kind of data. In short I managed to get 
+around 95% accuracy and finished at the 10th place. This post reveals all the details.
+
+<!--more-->
+
 ## Contents
 {:.no_toc}
 * TOC
@@ -12,16 +19,11 @@ By [Hrayr Harutyunyan](https://github.com/Harhro94)
 
 ## Dataset and scoring
 
-Recently [TopCoder](https://topcoder.com/) announced a [contest](https://community.topcoder.com/longcontest/?module=ViewProblemStatement&rd=16555&compid=49304)
-to identify the spoken language in audio recordings. 
-
 The recordings were in one of the 176 languages. Training set consisted of 66176 `mp3` files, 
 376 per language, from which I have separated 12320 recordings for validation 
 (Python script is [available on GitHub](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/choose_val_set.py)). 
 Test set consisted of 12320 `mp3` files. All recordings had the same length (~10 sec) 
 and seemed to be noise-free (at least all the samples that I have checked).
-
-<!--more-->
 
 Score was calculated the following way: for every `mp3` top 3 guesses were uploaded in a CSV file. 
 1000 points were given if the first guess is correct,
