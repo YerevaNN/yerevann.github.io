@@ -214,7 +214,7 @@ I had just one day to test the both)
 * It is interesting to see if a network with 50% dropout layers will improve the accuracy
 * Maybe larger convolutional networks, like _OxfordNet_ will perform better. 
 They require much more memory, and it was risky to play with them under a tough deadline
-* [Hybrid methods](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6288864)
+* [Hybrid methods](http://www.cs.toronto.edu/~asamir/papers/icassp12_cnn.pdf)
 combining CNN and Hidden Markov Models should work better
 * We believe it is possible to squeeze more from these models with better ensembling methods
 * [Other contestants report](https://apps.topcoder.com/forums/?module=Thread&threadID=866734&start=0&mc=4)
