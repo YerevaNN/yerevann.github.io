@@ -85,7 +85,7 @@ its description in Caffe prototxt format is available [here](https://github.com/
 | 16| Conv	| 32	| 256		| 22	| 3	| 3x3 / 1	|
 | 17| ReLU	| 32	| 256		| 22	| 3	| 			|
 | 18| MaxPool|32	| 256		| 11	| 1	| 3x3 / 2	|
-| 19| Fully connected |20	| 256		|  |  |  |
+| 19| Fully connected |20	| 1024		|  |  |  |
 | 20| ReLU	|20	| 1024		|  |  |  |
 | 21| Dropout|20	| 1024		|  |  |  |
 | 22| Fully connected|20	| 1024		|  |  |  |
@@ -112,7 +112,7 @@ This should be carefully analysed.
 
 |![Training (blue) and validation (red) loss](/public/2015-10-11/no-augm-loss.jpg "Training (blue) and validation (red) loss") |
 | --- |
-| Training (blue) and validation (red) loss over the 150 000 iterations on the non-augmented dataset. Plotted using [this script](https://github.com/YerevaNN/Caffe-python-tools/blob/master/plot_loss.py) | 
+| Training (blue) and validation (red) loss over the 150 000 iterations on the non-augmented dataset. The sudden drop of training loss corresponds to the point when base learning rate was changed from `0.01` to `0.001`. Plotted using [this script](https://github.com/YerevaNN/Caffe-python-tools/blob/master/plot_loss.py). | 
 
 The signs of overfitting were getting more and more visible and I stopped at 150 000 iterations. 
 The softmax loss got to 0.43 and it corresponded to 3 180 000 score 
@@ -134,9 +134,7 @@ to linearly scale the frequency bins during spectrogram generation:
 
 | ![Frequency warping formula](/public/2015-10-11/frequency-warp-formula.png "Frequency warping formula") |
 | --- |
-| Frequency warping formula from the [paper by L. Lee and R. Rose](http://ieeexplore.ieee.org/xpl/login.jsp?tp=&arnumber=650310&url=http%3A%2F%2Fieeexplore.ieee.org%2Fiel4%2F89%2F14168%2F00650310). 
-α is the scaling factor. Following Jaitly and Hinton I [chose it uniformly](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/augment_data.py#L92)
-between 0.9 and 1.1 | 
+| Frequency warping formula from the [paper by L. Lee and R. Rose](http://ieeexplore.ieee.org/xpl/login.jsp?tp=&arnumber=650310&url=http%3A%2F%2Fieeexplore.ieee.org%2Fiel4%2F89%2F14168%2F00650310). α is the scaling factor. Following Jaitly and Hinton I [chose it uniformly](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/augment_data.py#L92) between 0.9 and 1.1 | 
 
 I also [randomly cropped](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/augment_data.py#L77)
 the spectrograms so they had `768x256` size. Here are the results:
@@ -229,3 +227,4 @@ good results on this dataset
 One important issue is that the organizers of this contest [do not allow](http://apps.topcoder.com/forums//?module=Thread&threadID=866217&start=0&mc=3)
 to use the dataset outside the contest. We hope this decision will be changed eventually.
 
+ 
