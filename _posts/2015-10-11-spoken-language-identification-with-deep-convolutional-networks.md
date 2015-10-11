@@ -110,7 +110,7 @@ This should be carefully analysed.
 
 |![Training (blue) and validation (red) loss](/public/2015-10-11/no-augm-loss.jpg "Training (blue) and validation (red) loss") |
 | --- |
-| Training (blue) and validation (red) loss over the 150 000 iterations on the non-augmented dataset | 
+| Training (blue) and validation (red) loss over the 150 000 iterations on the non-augmented dataset. Plotted using [this script](https://github.com/YerevaNN/Caffe-python-tools/blob/master/plot_loss.py) | 
 
 The signs of overfitting were getting more and more visible and I stopped at 150 000 iterations. 
 The softmax loss got to 0.43 and it corresponded to 3 180 000 score 
@@ -130,24 +130,24 @@ In 2013 [N. Jaitly and G. Hinton](https://www.cs.toronto.edu/~hinton/absps/pertu
 used this technique to augment the audio dataset. I [used this formula](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/augment_data.py#L32)
 to linearly scale the frequency bins during spectrogram generation:
 
-|![Frequency warping formula](/public/2015-10-11/frequency-warp-formula.png "Frequency warping formula") |
+| ![Frequency warping formula](/public/2015-10-11/frequency-warp-formula.png "Frequency warping formula") |
 | --- |
 | Frequency warping formula from the [paper by L. Lee and R. Rose](http://ieeexplore.ieee.org/xpl/login.jsp?tp=&arnumber=650310&url=http%3A%2F%2Fieeexplore.ieee.org%2Fiel4%2F89%2F14168%2F00650310). 
-? is the scaling factor. Following Jaitly and Hinton I [chose it uniformly](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/augment_data.py#L92)
+α is the scaling factor. Following Jaitly and Hinton I [chose it uniformly](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/augment_data.py#L92)
 between 0.9 and 1.1 | 
 
 I also [randomly cropped](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/augment_data.py#L77)
 the spectrograms so they had `768x256` size. Here are the results:
 
-|![Spectrogram without modifications](/public/2015-10-11/spectrogram.jpg) "Spectrogram without modifications" | 
+|![Spectrogram without modifications](/public/2015-10-11/spectrogram.jpg "Spectrogram without modifications") | 
 | Spectrogram of one of the recordings |
-|![Cropped spectrogram with warped frequency axis](/public/2015-10-11/spectrogram-warped-cropped.jpg) "Cropped spectrogram with warped frequency axis" | 
+|![Cropped spectrogram with warped frequency axis](/public/2015-10-11/spectrogram-warped-cropped.jpg "Cropped spectrogram with warped frequency axis") | 
 | Cropped spectrogram of the same recording with warped frequency axis |
 
 For each `mp3` I have created 20 random spectrograms, but trained the network on 10 of them. 
-It took more than 2 days to create the augmented dataset and convert it to LevelDB format. 
+It took more than 2 days to create the augmented dataset and convert it to LevelDB format (the format Caffe suggests). 
 But training the network proved to be even harder. For 3 days I couldn't significantly decrease
-the train loss. After removing dropout layers the loss started to decrease but it would take weeks 
+the train loss. After removing the dropout layers the loss started to decrease but it would take weeks 
 to reach reasonable levels. Finally, Hrant suggested to try to reuse the weights of the 
 model trained on the non-augmented dataset. The problem was that due to the cropping,
 the image sizes in the two datasets were different. But it turned out that convolutional 
@@ -170,7 +170,7 @@ These trainings were done without any regularization techniques,
 weight decay or dropout layers, and there were clear signs of overfitting. I tried to add 50%
 dropout layers on fully connected layers, but the training was extremely slow. To improve the 
 speed I used 30% dropout, and trained the network for 120 000 more iterations using [this solver](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/prototxt/solver.augm.nolrcoef.prototxt).
-Softmax loss on validation set reached ................... which corresponded to  ..... score. 
+Softmax loss on the validation set reached ................... which corresponded to  ..... score. 
 The score was calculated by averaging softmax outputs over 10 spectrograms of each recording.
 
 ## Ensembling
