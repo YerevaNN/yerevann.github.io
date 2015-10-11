@@ -112,7 +112,7 @@ This should be carefully analysed.
 
 |![Training (blue) and validation (red) loss](/public/2015-10-11/no-augm-loss.jpg "Training (blue) and validation (red) loss") |
 | --- |
-| Training (blue) and validation (red) loss over the 150 000 iterations on the non-augmented dataset. The sudden drop of training loss corresponds to the point when base learning rate was changed from `0.01` to `0.001`. Plotted using [this script](https://github.com/YerevaNN/Caffe-python-tools/blob/master/plot_loss.py). | 
+| Training (blue) and validation (red) loss over the 150 000 iterations on the non-augmented dataset. The sudden drop of training loss corresponds to the point when the base learning rate was changed from `0.01` to `0.001`. Plotted using [this script](https://github.com/YerevaNN/Caffe-python-tools/blob/master/plot_loss.py). | 
 
 The signs of overfitting were getting more and more visible and I stopped at 150 000 iterations. 
 The softmax loss got to 0.43 and it corresponded to 3 180 000 score 
@@ -170,8 +170,8 @@ These trainings were done without any regularization techniques,
 weight decay or dropout layers, and there were clear signs of overfitting. I tried to add 50%
 dropout layers on fully connected layers, but the training was extremely slow. To improve the 
 speed I used 30% dropout, and trained the network for 120 000 more iterations using [this solver](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/prototxt/solver.augm.nolrcoef.prototxt).
-Softmax loss on the validation set reached ................... which corresponded to  ..... score. 
-The score was calculated by averaging softmax outputs over 10 spectrograms of each recording.
+Softmax loss on the validation set reached 0.21 which corresponded to 3 390 000 score. 
+The score was calculated by averaging softmax outputs over 20 spectrograms of each recording.
 
 ## Ensembling
 
@@ -190,11 +190,11 @@ was generated using [this script](https://github.com/YerevaNN/Spoken-language-id
 
 I also tried to train a [simple neural network](https://github.com/YerevaNN/Spoken-language-identification-CNN/blob/master/ensembling/ensemble.theano.py)
 with one hidden layer on the same CSV files. The results were significantly better than
-with XGBoost. 
+with XGBoost.
 
-The best result was obtained by ensembling the following models: ..................
-
-Final score was 3 401 840 and it was the [10th result](http://community.topcoder.com/longcontest/stats/?module=ViewOverview&rd=16555)
+The best result was obtained by ensembling the following two models: snapshots of the last 
+network (the one with 30% dropout) after 90 000 iterations and 105 000 iterations. Final 
+score was 3 401 840 and it was the [10th result](http://community.topcoder.com/longcontest/stats/?module=ViewOverview&rd=16555)
 of the contest.
 
 ## What we learned from this contest
