@@ -10,10 +10,10 @@ layout: default
 
 <!-- only display tag "infrastructure" if there are tags -->
 {% if page.tags != empty %}
-<div class="tag-icon-image">
+<div>
   <!-- iterate through tags in the current page using page.tags variable -->
   {%  for tag in page.tags  %}
-  <div class="tag-link">
+  <div class="tag-link tag-icon-image">
     <!-- link to appropriate tag anchor in tags.html -->
     {{ tag }}
   </div>
