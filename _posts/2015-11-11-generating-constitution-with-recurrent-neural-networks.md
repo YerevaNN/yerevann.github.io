@@ -31,9 +31,9 @@ Recently the main political topic in Armenia is the Constitutional reform. This 
 
 All articles are of the following form:
 
-```
+{% highlight text %}
 Հոդված 1. Հայաստանի Հանրապետությունը ինքնիշխան, ժողովրդավարական, սոցիալական, իրավական պետություն է:
-```
+{% endhighlight %}
 
 The first word, `Հոդված`, means "Article". Sentences end with the symbol `:`. 
 
@@ -93,14 +93,14 @@ th sample.lua cv/lm_bs50s128d0_epoch50.00_0.4883.t7 -length 3000 -temperature 0.
 
 `primetext` parameter allows to give the first characters of the generated sequence. Also it makes the output fully reproducible. Here is a snippet from `bs50s128d0` model, which is available [on Github](....).
 
-```
+{% highlight text %}
 Հոդված 111. Սահմանադրական դատարանի կազմավորումը, եթե այլ չեն _հասատատիրի_ _առնչամի_ կարելի սահմանափակվել միայն օրենքով, եթե դա անհրաժեշտ է հանցագործությունների իրավունք:
 Յուրաքանչյուր ոք ունի Հայաստանի Հանրապետության քաղաքացիությունը որոշում է կայացնում դատավորին կազմավորման կարգը 
 1. Հանրապետության նախագահի կամ նախատեսված դեպքերում նշանակվում է նաև տնտեսական մշակույթի հիմնական ուղղության դրանք _կայտարվակատությունն_ է: Նրանց զինված ուժերի օգտագործման նախարարներից ստացված փոխառությունների կողմից ընդունվում է ընտրված և միջա
 զգային _պայմանագվին_ պաշտոնները սահմանվում են օրենքով: 
-```
+{% endhighlight %}
 
-There are only 4 non-existent words here, others are completely fine. The sentences have no meaning, some parts are so unnatural that are even difficult to read.
+There are only 4 non-existent words here (marked by italic), others are completely fine. The sentences have no meaning, some parts are so unnatural that are even difficult to read.
 
 The network easily (even with `128` RNN size) learns to separate the articles by new line and start by the word `Հոդված` followed by some number. But even the best one doesn't manage to use increasing numbers for articles. Actually, very often the article number starts with `1`, because more than one third of the articles in the corpus have numbers starting with `1`.
 
