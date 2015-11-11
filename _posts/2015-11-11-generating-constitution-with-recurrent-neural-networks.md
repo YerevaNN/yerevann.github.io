@@ -39,7 +39,7 @@ The first word `Հոդված` means "Article". Sentences end with the symbol `:`
 
 ## Network parameters
 
-`char-rnn` works with basic recurrent neural networks, LSTM networks and GRU-RNNs. In our experiments we only used LSTM network with 2 layers. We trained for 50 epochs with the default learning rate parameters (base rate is `2e-3`, which decays by a factor of `0.97` after each `10` epochs). We wanted to understand how the size of LSTM internal state (`rnn_size`), [dropout](https://www.youtube.com/watch?v=UcKPdAM8cnI) and batch size affect the performance. We used [grid search](https://en.wikipedia.org/wiki/Hyperparameter_optimization#Grid_search) over the following values:
+`char-rnn` works with basic recurrent neural networks, LSTM networks and GRU-RNNs. In our experiments we only used LSTM network with 2 layers. Actually we don't really understand how LSTM networks work in details, but we hope to improve our understanding by watching the videos of Richard Socher's excellent [NLP course](http://cs224d.stanford.edu/index.html). We trained the network for 50 epochs with the default learning rate parameters (base rate is `2e-3`, which decays by a factor of `0.97` after each `10` epochs). We wanted to understand how the size of LSTM internal state (`rnn_size`), [dropout](https://www.youtube.com/watch?v=UcKPdAM8cnI) and batch size affect the performance. We used [grid search](https://en.wikipedia.org/wiki/Hyperparameter_optimization#Grid_search) over the following values:
 
 * `rnn_size`: `128`, `256`, `512`
 * `batch_size`: `25`, `50`, `100`
@@ -65,13 +65,13 @@ Experiments showed that, unsuprisingly, training loss is better (after 50 epochs
    
 For validation loss, we have the following tables.
  
-| RNN Size \ Dropout | 0	| 0.2	| 0.4	| 0.6	|
-| -----------------	| ----- | ----- | ----- | ----- |
-| 128				| 0.5341| 0.5144| 0.5454| 0.6094|
-| 256				| 0.566	| 0.4464| 0.45	| 0.4723|
-| 512				| 0.6032| 0.4804| 0.4599| 0.4399|
+| RNN Size \ Dropout | 0	 | 0.2		| 0.4		| 0.6		|
+| -----------------	| -----  | -----	| -----		| ----- 	|
+| 128				| 0.5341 | 0.5144	| 0.5454	| 0.6094	|
+| 256				| 0.566	 | 0.4464	| 0.45		| 0.4723	|
+| 512				| 0.6032 | 0.4804	| 0.4599	| 0.4399	|
 
-
+When RNN size is only `128`, we notice that the best performance is achieved when dropout is `0.2`. Larger dropout values do not allow the network to learn enough. For RNN size `256` the optimal dropout value is somewhere between `0.2` and `0.4`. 
 
 
 ## Generated samples
