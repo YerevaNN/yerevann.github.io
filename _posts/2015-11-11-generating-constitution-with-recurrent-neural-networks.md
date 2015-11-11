@@ -69,15 +69,15 @@ For validation loss, we have the following tables.
 
 |	 			| **Dropout**	| **0**	 | **0.2**	| **0.4**	| **0.6**	|
 | **Batch size**| **RNN Size** 	| 	 	 | 			| 			| 			|
-| **100**		| `128        ` | `0.5341        ` | `0.5144        ` | `0.5454        ` | `0.6094        ` |
-| 				| `    256    ` | `    0.5660    ` | `    0.4464    ` | `    0.4500    ` | `    0.4723    ` |
-| 				| `        512` | `        0.6032` | `        0.4804` | `        0.4599` | `        0.4399` |
-| **50** 		| `128        ` | `0.4883        ` | `0.4452        ` | `0.4813        ` | `0.5373        ` |
-| 				| `    256    ` | `    0.5249    ` | `    0.3887    ` | `    0.3996    ` | `    0.4280    ` |
-| 				| `        512` | `        0.5340` | `        0.4420` | `        0.3997` | `        0.3800` |
-| **25** 		| `128        ` | `0.5060        ` | `0.4307        ` | `0.4813        ` | `0.5373        ` |
-| 				| `    256    ` | `    0.5322    ` | `    0.4185    ` | `    0.4021    ` | `    0.4261    ` |
-| 				| `        512` | `        0.5596` | `        0.4495` | `        0.4380` | `        0.4126` |
+| **100**		| <pre>128        </pre> | <pre>0.5341        </pre> | <pre>0.5144        </pre> | <pre>0.5454        </pre> | <pre>0.6094        </pre> |
+| 				| <pre>    256    </pre> | <pre>    0.5660    </pre> | <pre>    0.4464    </pre> | <pre>    0.4500    </pre> | <pre>    0.4723    </pre> |
+| 				| <pre>        512</pre> | <pre>        0.6032</pre> | <pre>        0.4804</pre> | <pre>        0.4599</pre> | <pre>        0.4399</pre> |
+| **50** 		| <pre>128        </pre> | <pre>0.4883        </pre> | <pre>0.4452        </pre> | <pre>0.4813        </pre> | <pre>0.5373        </pre> |
+| 				| <pre>    256    </pre> | <pre>    0.5249    </pre> | <pre>    0.3887    </pre> | <pre>    0.3996    </pre> | <pre>    0.4280    </pre> |
+| 				| <pre>        512</pre> | <pre>        0.5340</pre> | <pre>        0.4420</pre> | <pre>        0.3997</pre> | <pre>        0.3800</pre> |
+| **25** 		| <pre>128        </pre> | <pre>0.5060        </pre> | <pre>0.4307        </pre> | <pre>0.4813        </pre> | <pre>0.5373        </pre> |
+| 				| <pre>    256    </pre> | <pre>    0.5322    </pre> | <pre>    0.4185    </pre> | <pre>    0.4021    </pre> | <pre>    0.4261    </pre> |
+| 				| <pre>        512</pre> | <pre>        0.5596</pre> | <pre>        0.4495</pre> | <pre>        0.4380</pre> | <pre>        0.4126</pre> |
 
 When RNN size is only `128`, we notice that the best performance is achieved when dropout is `0.2`. Larger dropout values do not allow the network to learn enough. When RNN size is increased to `256`, the optimal dropout value is somewhere between `0.2` and `0.4`. For RNN size `512`,  the best performance we observed using `60%` dropout. We didn't try to go any further. 
 
