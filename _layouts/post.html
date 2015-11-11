@@ -8,6 +8,20 @@ layout: default
   {{ content }}
 </article>
 
+<!-- only display tag "infrastructure" if there are tags -->
+{% if page.tags != empty %}
+<div class="tag-icon-image">
+  <!-- iterate through tags in the current page using page.tags variable -->
+  {%  for tag in page.tags  %}
+  <div class="tag-link">
+    <!-- link to appropriate tag anchor in tags.html -->
+    {{ tag }}
+  </div>
+  {%  endfor %}
+</div>
+{%  endif  %}
+
+
 {% if site.related_posts != empty %}
 <aside class="related">
   <h2>Related Posts</h2>
