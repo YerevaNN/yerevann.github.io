@@ -31,9 +31,9 @@ Recently the main political topic in Armenia is the Constitutional reform. This 
 
 All articles are of the following form:
 
-{% highlight %}
+```
 Հոդված 1. Հայաստանի Հանրապետությունը ինքնիշխան, ժողովրդավարական, սոցիալական, իրավական պետություն է:
-{% endhighlight %}
+```
 
 The first word `Հոդված` means "Article". Sentences end with the symbol `:`. 
 
@@ -65,13 +65,13 @@ Experiments showed that, unsuprisingly, training loss is better (after 50 epochs
    
 For validation loss, we have the following tables.
 
-| **Dropout** | 0   | 0.2  | 0.4  | 0.6  |
-| **RNN Size**  |     |    |    |    |
-| 128  | 0.5341 | 0.5144 | 0.5454 | 0.6094 |
-| 256  | 0.566  | 0.4464 | 0.45  | 0.4723 |
-| 512  | 0.6032 | 0.4804 | 0.4599 | 0.4399 |
+| **Dropout**	| 0		 | 0.2		| 0.4		| 0.6		|
+| **RNN Size** 	| 	 	 | 			| 			| 			|
+| 128		| 0.5341 | 0.5144	| 0.5454	| 0.6094	|
+| 256		| 0.566	 | 0.4464	| 0.45		| 0.4723	|
+| 512		| 0.6032 | 0.4804	| 0.4599	| 0.4399	|
 
-When RNN size is only `128`, we notice that the best performance is achieved when dropout is `0.2`. Larger dropout values do not allow the network to learn enough. When RNN size is increased to `256`, the optimal dropout value is somewhere between `0.2` and `0.4`. For RNN size `512`, the best performance we observed used `60%` dropout. We didn't try to go any further.  
+When RNN size is only `128`, we notice that the best performance is achieved when dropout is `0.2`. Larger dropout values do not allow the network to learn enough. When RNN size is increased to `256`, the optimal dropout value is somewhere between `0.2` and `0.4`. For RNN size `512`,  the best performance we observed when using `60%` dropout. We didn't try to go any further. 
 
 
 ## Generated samples
