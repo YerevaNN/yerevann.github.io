@@ -69,21 +69,42 @@ For validation loss, we have the following tables.
 
 |	 			| **Dropout**	| **0**	 | **0.2**	| **0.4**	| **0.6**	|
 | **Batch size**| **RNN Size** 	| 	 	 | 			| 			| 			|
-| **100**		| 128 | 0.5341 | 0.5144 | 0.5454 | 0.6094 |
-| 				| `- `256 | `- `0.5660 | `- `0.4464 | `- `0.4500 | `- `0.4723 |
-| 				| `- - `512 | `- - `0.6032 | `- - `0.4804 | `- - `0.4599 | `- - `0.4399 |
-| **50** 		| 128 | 0.4883 | 0.4452 | 0.4813 | 0.5373 |
-| 				| `- `256 | `- `0.5249 | `- `0.3887 | `- `0.3996 | `- `0.4280 |
-| 				| `- - `512 | `- - `0.5340 | `- - `0.4420 | `- - `0.3997 | `- - `0.3800 |
 | **25** 		| 128 | 0.5060 | 0.4307 | 0.4813 | 0.5373 |
 | 				| `- `256 | `- `0.5322 | `- `0.4185 | `- `0.4021 | `- `0.4261 |
 | 				| `- - `512 | `- - `0.5596 | `- - `0.4495 | `- - `0.4380 | `- - `0.4126 |
+| **50** 		| 128 | 0.4883 | 0.4452 | 0.4813 | 0.5373 |
+| 				| `- `256 | `- `0.5249 | `- `0.3887 | `- `0.3996 | `- `0.4280 |
+| 				| `- - `512 | `- - `0.5340 | `- - `0.4420 | `- - `0.3997 | `- - `0.3800 |
+| **100**		| 128 | 0.5341 | 0.5144 | 0.5454 | 0.6094 |
+| 				| `- `256 | `- `0.5660 | `- `0.4464 | `- `0.4500 | `- `0.4723 |
+| 				| `- - `512 | `- - `0.6032 | `- - `0.4804 | `- - `0.4599 | `- - `0.4399 |
 
 When RNN size is only `128`, we notice that the best performance is achieved when dropout is `0.2`. Larger dropout values do not allow the network to learn enough. When RNN size is increased to `256`, the optimal dropout value is somewhere between `0.2` and `0.4`. For RNN size `512`,  the best performance we observed using `60%` dropout. We didn't try to go any further. 
 
 As for batch sizes, we see the best performance on `25` if the RNN size is only `128`. For larger networks, batch size `50` performs better. Overall we obtained the lowest validation score, `0.38`, using `60%` dropout, `50` batch size and `512` RNN size.
 
 ## Generated samples
+
+When the trained models are ready, we can generate text samples by using `sample.lua` script included in the repository. It accepts one important parameter called `temperature` which determines how much the network can "fantasize". Higher temperature gives more diversity but at a cost of making more mistakes, as Andrej explains in his blog post. The command looks like this
+ 
+{% highlight bash %}
+th sample.lua cv/lm_bs50s128d0_epoch50.00_0.4883.t7 -length 3000 -temperature 0.5 -gpuid 0 -primetext "Հոդված"
+{% endhighlight %}
+
+`primetext` parameter allows to give the first characters of the generated sequence. Also it makes the output fully reproducible. Here is a snippet from `bs50s128d0` model, which is available [on Github](....).
+
+```
+Հոդված 111. Սահմանադրական դատարանի կազմավորումը, եթե այլ չեն _հասատատիրի_ _առնչամի_ կարելի սահմանափակվել միայն օրենքով, եթե դա անհրաժեշտ է հանցագործությունների իրավունք:
+Յուրաքանչյուր ոք ունի Հայաստանի Հանրապետության քաղաքացիությունը որոշում է կայացնում դատավորին կազմավորման կարգը 
+1. Հանրապետության նախագահի կամ նախատեսված դեպքերում նշանակվում է նաև տնտեսական մշակույթի հիմնական ուղղության դրանք _կայտարվակատությունն_ է: Նրանց զինված ուժերի օգտագործման նախարարներից ստացված փոխառությունների կողմից ընդունվում է ընտրված և միջա
+զգային _պայմանագվին_ պաշտոնները սահմանվում են օրենքով: 
+```
+
+There are only 4 non-existent words here, others are completely fine. The sentences have no meaning, some parts are so unnatural that are even difficult to read.
+
+The network easily (even with `128` RNN size) learns to separate the articles by new line and start by the word `Հոդված` followed by some number. But even the best one doesn't manage to use increasing numbers for articles. Actually, very often the article number starts with `1`, because more than one third of the articles in the corpus have numbers starting with `1`.
+
+The simplest version (`128` RNN size, no dropout) sometimes makes "typos" in the text.
 
 When the number of 
 512 - large chunks
