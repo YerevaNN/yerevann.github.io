@@ -13,7 +13,9 @@ layout: default
   <h2>Related Posts</h2>
   <ul class="related-posts">
     {% for post in site.related_posts limit:3 %}
-      <li>
+    {% if post.tags contains 'draft' %}
+    {% else %}
+    <li>
         <h3>
           <a href="{{ site.baseurl }}{{ post.url }}">
             {{ post.title }}
@@ -21,6 +23,7 @@ layout: default
           </a>
         </h3>
       </li>
+    {% endif %}
     {% endfor %}
   </ul>
 </aside>
