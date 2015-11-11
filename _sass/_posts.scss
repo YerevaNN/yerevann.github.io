@@ -27,6 +27,21 @@
   color: #9a9a9a;
 }
 
+// Tags
+
+.tag-icon-image {
+  display: block;
+  background-image: url("/images/tag_purple.png");
+  background-size: 12px;
+  background-repeat: no-repeat;
+  background-position: left center;
+  padding-left: 20px;
+}
+
+.tag-link {
+  display: inline;
+  font-size: 0.8em;
+}
 
 // Related posts
 .related {
