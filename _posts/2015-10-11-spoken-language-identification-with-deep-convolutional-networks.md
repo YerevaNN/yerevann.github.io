@@ -1,6 +1,10 @@
 ---
 layout: post
 title: Spoken language identification with deep convolutional networks
+tags:
+- Convolutional neural networks
+- Audio recognition
+- Contests
 ---
 
 By [Hrayr Harutyunyan](https://github.com/Harhro94)

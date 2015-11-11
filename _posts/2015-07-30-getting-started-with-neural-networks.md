@@ -1,6 +1,8 @@
 ---
 layout: post
 title: Getting started with neural networks
+tags:
+- how to study
 ---
 
 ## Who we are
