@@ -25,7 +25,7 @@ Andrej did a great job explaining how the recurrent networks learn and even visu
 
 ## Data
 
-We decided to test Karpathy's RNN on Armenian text. Armenian language has a [unique alphabet](https://en.wikipedia.org/wiki/Armenian_alphabet), and the characters are encoded in the Unicode space by the codes [U+0530 - U+058F](http://www.unicode.org/charts/PDF/U0530.pdf). In UTF-8 these symbols use two bytes where the first byte is always `0xD4`, `0xD5` or `0xD6`. So the neural net has two look at almost 2 times larger distances (when compared to English) in order to be able to learn the words. Also, the Armenian alphabet contains 39 letters, 50% more than Latin.
+We decided to test Karpathy's RNN on Armenian text. Armenian language has a [unique alphabet](https://en.wikipedia.org/wiki/Armenian_alphabet), and the characters are encoded in the Unicode space by the codes [U+0530 - U+058F](http://www.unicode.org/charts/PDF/U0530.pdf). In UTF-8 these symbols use two bytes where the first byte is always `0xD4`, `0xD5` or `0xD6`. So the neural net has to look at almost 2 times larger distances (when compared to English) in order to be able to learn the words. Also, the Armenian alphabet contains 39 letters, 50% more than Latin.
 
 Recently the main political topic in Armenia is the Constitutional reform. This helped us to choose the corpus for training. We took all three versions of the Constitution of Armenia (the [first version](http://www.arlis.am/documentview.aspx?docID=1) voted in 1995, the [updated version](http://www.arlis.am/documentview.aspx?docID=75780) of 2005, and the [new proposal](http://moj.am/storage/uploads/Sahmanadrakan_1-15.docx) which will be voted later this year) and concatenated them in a [single text file](https://github.com/YerevaNN/char-rnn-constitution/blob/master/data/input.txt). The size of the corpus is just 440 KB, which is roughly 224 000 Unicode symbols (all non-Armenian symbols, including spaces and numbers use 1 byte). Andrej suggests to use at least 1MB data, so our corpus is very small. On the other hand the text is quite specific, the vocabulary is very small and the structure of the text is fairly simple.
 
@@ -100,9 +100,8 @@ The network easily (even with `128` RNN size) learns to separate the articles by
 
 With `256` RNN size and `40%` dropout the result is much more readable.
 
-> Հոդված 14. Պատգամավոր կարող է դնել իր վստահության հարցը: Կառավարության անդամների լիազորությունները _համապատասխանական_ կազմակերպությունների կամ միավորման և գործունեության կարգը սահմանվում է օրենքով: 
-
-> Հոդված 107. Պատգամավորի լիազորությունները դադարեցնում է Սահմանադրությամբ և օրենքներով: Այդ իրավունքը կարող է սահմանափակվել միայն օրենքով: <br>
+> Հոդված 14. Պատգամավոր կարող է դնել իր վստահության հարցը: Կառավարության անդամների լիազորությունները _համապատասխանական_ կազմակերպությունների կամ միավորման և գործունեության կարգը սահմանվում է օրենքով: <br>
+ Հոդված 107. Պատգամավորի լիազորությունները դադարեցնում է Սահմանադրությամբ և օրենքներով: Այդ իրավունքը կարող է սահմանափակվել միայն օրենքով: <br>
  Հոդված 126. Հանրապետության նախագահի հրամանագրերը և կարգադրությունները կամ այլ պետությունը միասնական կառավարման մարմինների կողմից հանցագործության կատարման պահին գործող դատարանների նախագահների թեկնածությունների և առաջարկությամբ սահմանադրական դատարանի նախագահ:<br>
   Հայաստանի Հանրապետության իրավունքը<br>
   1. Յուրաքանչյուր ոք ունի իր իրավունքների և ազատությունների պաշտպանության նպատակով:<br>
@@ -111,12 +110,22 @@ With `256` RNN size and `40%` dropout the result is much more readable.
   3. Յուրաքանչյուր ոք ունի իր ազգային որոշումները սահմանվում են օրենքով:<br> 
   2. Յուրաքանչյուր ոք ունի իր իրավունքների և ազատությունների պաշտպանության նպատակով:
   
-Only 2 of the 140 words are nonexistent, but both are syntactically correct. For example there is no such word `չապահողական` in Armenian, but `չ` and `ապա` are prefixes, `հող` means "soil" and `ական` is a suffix. 
+Only 2 of the 140 words are nonexistent, but both are syntactically correct. For example there is no such word `չապահողական` in Armenian, but `չ` and `ապա` are prefixes, `հող` means "soil" and `ական` is a suffix. Sentences still do not have valid structure.  
 
 The network learned that sometimes ordered lists appear in the articles, but couldn't learn to properly enumerate the points. Sometimes it counts up to 2 only :) It would be interesting to see on what kind of corpora it will be able to count a bit more.
- 
 
+Here is one more snippet using the best performing model `bs50s512d0.6` (temperature is again `0.5`).
 
+>Հոդված 21. Յուրաքանչյուր ոք ունի ազատ տեղաշարժվելու և բնակություն է կառավարության անդամներին:
+ Հանրապետության Նախագահը պաշտոնն ստանձնում է Հանրապետության Նախագահը չի կարող զբաղվել ձեռնարկատիրական գործունեությամբ: <br>
+ Հոդված 50. Հանրապետության Նախագահը պաշտոնն ստանձնում է Հանրապետության Նախագահի պաշտոնը թափուր մնալու դեպքում Հանրապետության Նախագահի արտահերթ ընտրությունը կազմված է վարչապետի առաջարկությամբ վերահսկողությունը <br> 
+ 1. Յուրաքանչյուր ոք ունի ազատ տեղաշարժվելու և բնակավայր ընտրելու իրավունք:
+
+There are no invalid words anymore. Sentenced are better formed. Sometimes the sentence is composed of two exact copies of different sentences that actually occur in the corpus. For example the combination `Հանրապետության Նախագահը պաշտոնն ստանձնում է` appears [7 times](https://github.com/YerevaNN/char-rnn-constitution/blob/master/data/input.txt#L130) in the corpus, and `Հանրապետության Նախագահը չի կարող զբաղվել ձեռնարկատիրական գործունեությամբ` appears [once](https://github.com/YerevaNN/char-rnn-constitution/blob/master/data/input.txt#L1501). So the samples are mostly boring. Although sometimes the combination of such two parts have a meaning. The following [generated sample](......) is a very good example, and doesn't appear in the corpus. 
+
+>Հոդված 151. Հանրապետության Նախագահի հրամանագրերը և կարգադրությունները կատարում է Ազգային ժողովի նախագահը:
+
+We tried to increase the temperature to `1.0`
 
 ## NaNoGenMo
 
