@@ -89,25 +89,33 @@ When the trained models are ready, we can generate text samples by using `sample
 th sample.lua cv/lm_bs50s128d0_epoch50.00_0.4883.t7 -length 3000 -temperature 0.5 -gpuid 0 -primetext "Հոդված"
 {% endhighlight %}
 
-`primetext` parameter allows to give the first characters of the generated sequence. Also it makes the output fully reproducible. Here is a snippet from `bs50s128d0` model, which is available [on Github](....) (sampled with `0.5` temperature).
+`primetext` parameter allows to give the first characters of the generated sequence. Also it makes the output fully reproducible. Here is a snippet from `bs50s128d0` model, which is available [on Github](....) (validation loss is `0.4883`, sampled with `0.5` temperature).
 
 > Հոդված 111. Սահմանադրական դատարանի կազմավորումը, եթե այլ չեն _հասատատիրի_ _առնչամի_ կարելի սահմանափակվել միայն օրենքով, եթե դա անհրաժեշտ է հանցագործությունների իրավունք:
 Յուրաքանչյուր ոք ունի Հայաստանի Հանրապետության քաղաքացիությունը որոշում է կայացնում դատավորին կազմավորման կարգը 
-1. Հանրապետության նախագահի կամ նախատեսված դեպքերում նշանակվում է նաև տնտեսական մշակույթի հիմնական ուղղության դրանք _կայտարվակատությունն_ է: Նրանց զինված ուժերի օգտագործման նախարարներից ստացված փոխառությունների կողմից ընդունվում է ընտրված և միջա
-զգային _պայմանագվին_ պաշտոնները սահմանվում են օրենքով: 
+ 
+> 1. Հանրապետության նախագահի կամ նախատեսված դեպքերում նշանակվում է նաև տնտեսական մշակույթի հիմնական ուղղության դրանք _կայտարվակատությունն_ է: Նրանց զինված ուժերի օգտագործման նախարարներից ստացված փոխառությունների կողմից ընդունվում է ընտրված և միջազգային _պայմանագվին_ պաշտոնները սահմանվում են օրենքով: 
 
-There are only 4 non-existent words here (marked by italic), others are completely fine. The sentences have no meaning, some parts are so unnatural that are even difficult to read.
+There are only 4 nonexistent words here (marked by italic), others are completely fine. The sentences have no meaning, some parts are so unnatural that are even difficult to read.
 
-The network easily (even with `128` RNN size) learns to separate the articles by new line and start by the word `Հոդված` followed by some number. But even the best one doesn't manage to use increasing numbers for articles. Actually, very often the article number starts with `1`, because more than one third of the articles in the corpus have numbers starting with `1`.
+The network easily (even with `128` RNN size) learns to separate the articles by new line and start by the word `Հոդված` followed by some number. But even the best one doesn't manage to use increasing numbers for consecutive articles. Actually, very often the article number starts with `1`, because more than one third of the articles in the corpus have numbers starting with `1`. 
 
-The simplest version (`128` RNN size, no dropout) sometimes makes "typos" in the text.
+With `256` RNN size and `40%` dropout the result is much more readable.
 
-When the number of 
-512 - large chunks
-128 - new words
+> Հոդված 14. Պատգամավոր կարող է դնել իր վստահության հարցը: Կառավարության անդամների լիազորությունները համապատասխանական կազմակերպությունների կամ միավորման և գործունեության կարգը սահմանվում է օրենքով: 
+> Հոդված 107. Պատգամավորի լիազորությունները դադարեցնում է Սահմանադրությամբ և օրենքներով: Այդ իրավունքը կարող է սահմանափակվել միայն օրենքով: 
+> Հոդված 126. Հանրապետության նախագահի հրամանագրերը և կարգադրությունները կամ այլ պետությունը միասնական կառավարման մարմինների կողմից հանցագործության կատարման պահին գործող դատարանների նախագահների թեկնածությունների և առաջարկությամբ սահմանադրական դատարանի նախագահ:
+  Հայաստանի Հանրապետության իրավունքը
+  1. Յուրաքանչյուր ոք ունի իր իրավունքների և ազատությունների պաշտպանության նպատակով:
+  2. Ազգային ժողովի նախագահի վերահսկողության կամ Սահմանադրության 190-րդ հոդվածի 1-ին կետով նախատեսված դեպքերում և կարգով ընդունված որոշումները սահմանվում են օրենքով: 
+  2. Յուրաքանչյուր ոք ունի իր իրավունքների և ազատությունների սահմանափակումների հետ չապահողական կամ այլ դեպքերում վարչապետի նախագահների նախնական հանձնաժողովներն ստեղծվում են Սահմանադրությամբ և օրենքներով: 
+  3. Յուրաքանչյուր ոք ունի իր ազգային որոշումները սահմանվում են օրենքով: 
+  2. Յուրաքանչյուր ոք ունի իր իրավունքների և ազատությունների պաշտպանության նպատակով:
+  
+2 of the 140 words are nonexistent, but both examples are syntactically correct. For example there is no such word `չապահողական` in Armenian, but `չ` and `ապա` are prefixes, `հող` means "soil" and `ական` is a suffix. 
 
-numeration is wrong
-most articles start with 1
+Basically, on this corpus this network doesn't learn counting at all.
+
 
 ## NaNoGenMo
 
