@@ -31,9 +31,7 @@ Recently the main political topic in Armenia is the Constitutional reform. This 
 
 All articles are of the following form:
 
-{% highlight text %}
-Հոդված 1. Հայաստանի Հանրապետությունը ինքնիշխան, ժողովրդավարական, սոցիալական, իրավական պետություն է:
-{% endhighlight %}
+> Հոդված 1. Հայաստանի Հանրապետությունը ինքնիշխան, ժողովրդավարական, սոցիալական, իրավական պետություն է:
 
 The first word, `Հոդված`, means "Article". Sentences end with the symbol `:`. 
 
@@ -91,14 +89,12 @@ When the trained models are ready, we can generate text samples by using `sample
 th sample.lua cv/lm_bs50s128d0_epoch50.00_0.4883.t7 -length 3000 -temperature 0.5 -gpuid 0 -primetext "Հոդված"
 {% endhighlight %}
 
-`primetext` parameter allows to give the first characters of the generated sequence. Also it makes the output fully reproducible. Here is a snippet from `bs50s128d0` model, which is available [on Github](....).
+`primetext` parameter allows to give the first characters of the generated sequence. Also it makes the output fully reproducible. Here is a snippet from `bs50s128d0` model, which is available [on Github](....) (sampled with `0.5` temperature).
 
-{% highlight text %}
-Հոդված 111. Սահմանադրական դատարանի կազմավորումը, եթե այլ չեն _հասատատիրի_ _առնչամի_ կարելի սահմանափակվել միայն օրենքով, եթե դա անհրաժեշտ է հանցագործությունների իրավունք:
+> Հոդված 111. Սահմանադրական դատարանի կազմավորումը, եթե այլ չեն _հասատատիրի_ _առնչամի_ կարելի սահմանափակվել միայն օրենքով, եթե դա անհրաժեշտ է հանցագործությունների իրավունք:
 Յուրաքանչյուր ոք ունի Հայաստանի Հանրապետության քաղաքացիությունը որոշում է կայացնում դատավորին կազմավորման կարգը 
 1. Հանրապետության նախագահի կամ նախատեսված դեպքերում նշանակվում է նաև տնտեսական մշակույթի հիմնական ուղղության դրանք _կայտարվակատությունն_ է: Նրանց զինված ուժերի օգտագործման նախարարներից ստացված փոխառությունների կողմից ընդունվում է ընտրված և միջա
 զգային _պայմանագվին_ պաշտոնները սահմանվում են օրենքով: 
-{% endhighlight %}
 
 There are only 4 non-existent words here (marked by italic), others are completely fine. The sentences have no meaning, some parts are so unnatural that are even difficult to read.
 
