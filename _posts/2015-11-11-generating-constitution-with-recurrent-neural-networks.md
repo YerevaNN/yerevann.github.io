@@ -45,7 +45,7 @@ We trained the network for 50 epochs with the default learning rate parameters (
 * `batch_size`: `25`, `50`, `100`
 * `dropout`: `0`, `0.2`, `0.4` and at the end we tried `0.6`
 
-After installing Lua, Torch and CUDA (as described on [`char-rnn` page](https://github.com/karpathy/char-rnn#requirements)) we have moved our mini-corpus to `/data/input.txt` and ran the [`run.sh` file](....), which contains commands like this:
+After installing Lua, Torch and CUDA (as described on [`char-rnn` page](https://github.com/karpathy/char-rnn#requirements)) we have moved our mini-corpus to `/data/input.txt` and ran the [`run.sh` file](https://github.com/YerevaNN/char-rnn-constitution/blob/master/run.sh), which contains commands like this:
 
 {% highlight bash %}
 th train.lua -data_dir data/ -batch_size 50 -dropout 0.4 -rnn_size 512 -gpuid 0 -savefile bs50s512d0.4 | tee log_bs50s512d0.4
@@ -61,7 +61,7 @@ We have adapted [this script](https://github.com/YerevaNN/Caffe-python-tools/blo
 | --- |
 | Training (blue to aqua) and validation (red to green) loss over 50 epochs. RNN size was set to 256 and the batch size was 50. In particular, this graph shows that when no dropout is used, validation loss actually increases after 20 epochs. Plotted using [this script](https://github.com/YerevaNN/char-rnn-constitution/blob/master/plot_loss.py). | 
 
-Experiments showed that, unsuprisingly, training loss is better (after 50 epochs) when RNN size is increased and when dropout ratio is decreased. Under all configurations we got the lowest train losses using batch size `50` (compared to `25` and `100`) and we don't have explanation for this.
+Experiments showed that, unsuprisingly, training loss is better (after 50 epochs) when RNN size is increased and when dropout ratio is decreased. Under all configurations we got the lowest train losses using batch size 50 (compared to 25 and 100) and we don't have explanation for this.
    
 For validation loss, we have the following tables.
 
@@ -77,9 +77,9 @@ For validation loss, we have the following tables.
 | 				| `- `256 | `- `0.5660 | `- `0.4464 | `- `0.4500 | `- `0.4723 |
 | 				| `- - `512 | `- - `0.6032 | `- - `0.4804 | `- - `0.4599 | `- - `0.4399 |
 
-When RNN size is only `128`, we notice that the best performance is achieved when dropout is `0.2`. Larger dropout values do not allow the network to learn enough. When RNN size is increased to `256`, the optimal dropout value is somewhere between `0.2` and `0.4`. For RNN size `512`,  the best performance we observed using `60%` dropout. We didn't try to go any further. 
+When RNN size is only 128, we notice that the best performance is achieved when dropout is 20%. Larger dropout values do not allow the network to learn enough. When RNN size is increased to 256, the optimal dropout value is somewhere between 20% and 40%. For RNN size 512,  the best performance we observed used 60% dropout. We didn't try to go any further. 
 
-As for batch sizes, we see the best performance on `25` if the RNN size is only `128`. For larger networks, batch size `50` performs better. Overall we obtained the lowest validation score, `0.38`, using `60%` dropout, `50` batch size and `512` RNN size.
+As for the batch sizes, we see the best performance on 25 if RNN size is only 128. For larger networks, batch size 50 performs better. Overall we obtained the lowest validation score, 0.38, using 60% dropout, 50 batch size and 512 RNN size.
 
 ## Generated samples
 
@@ -89,16 +89,16 @@ When the trained models are ready, we can generate text samples by using `sample
 th sample.lua cv/lm_bs50s128d0_epoch50.00_0.4883.t7 -length 3000 -temperature 0.5 -gpuid 0 -primetext "Հոդված"
 {% endhighlight %}
 
-`primetext` parameter allows to give the first characters of the generated sequence. Also it makes the output fully reproducible. Here is a snippet from `bs50s128d0` model, which is available [on Github](....) (validation loss is `0.4883`, sampled with `0.5` temperature).
+`primetext` parameter allows to predefine the first characters of the generated sequence. Also it makes the output fully reproducible. Here is a snippet from `bs50s128d0` model, which is available [on Github](https://github.com/YerevaNN/char-rnn-constitution/tree/master/models) (validation loss is 0.4883, sampled with 0.5 temperature).
 
 > Հոդված 111. Սահմանադրական դատարանի կազմավորումը, եթե այլ չեն _հասատատիրի_ _առնչամի_ կարելի սահմանափակվել միայն օրենքով, եթե դա անհրաժեշտ է հանցագործությունների իրավունք:
 Յուրաքանչյուր ոք ունի Հայաստանի Հանրապետության քաղաքացիությունը որոշում է կայացնում դատավորին կազմավորման կարգը 
  
-There are 2 nonexistent words here (marked by italic), others are fine. The sentences have no meaning, some parts are very unnatural, making them difficult to read.
+There are 2 nonexistent words here (marked by italic), others are fine. The sentences have no meaning, some parts are quite unnatural, making them difficult to read.
 
-The network easily (even with `128` RNN size) learns to separate the articles by new line and start by the word `Հոդված` followed by some number. But even the best one doesn't manage to use increasing numbers for consecutive articles. Actually, very often the article number starts with `1`, because more than one third of the articles in the corpus have numbers starting with `1`. 
+The network easily (even with 128 RNN size) learns to separate the articles by new line and starts them by the word `Հոդված` followed by some number. But even the best one doesn't manage to use increasing numbers for consecutive articles. Actually, very often the article number starts with `1`, because more than one third of the articles in the corpus have numbers starting with `1`. It also understands some basic punctuation. It correctly puts commas before the word `եթե`, which is the Armenian word for "if".
 
-With `256` RNN size and `40%` dropout the result is much more readable.
+With 256 RNN size and 40% dropout the result is much more readable.
 
 > Հոդված 14. Պատգամավոր կարող է դնել իր վստահության հարցը: Կառավարության անդամների լիազորությունները _համապատասխանական_ կազմակերպությունների կամ միավորման և գործունեության կարգը սահմանվում է օրենքով: <br>
  Հոդված 107. Պատգամավորի լիազորությունները դադարեցնում է Սահմանադրությամբ և օրենքներով: Այդ իրավունքը կարող է սահմանափակվել միայն օրենքով: <br>
@@ -114,18 +114,38 @@ Only 2 of the 140 words are nonexistent, but both are syntactically correct. For
 
 The network learned that sometimes ordered lists appear in the articles, but couldn't learn to properly enumerate the points. Sometimes it counts up to 2 only :) It would be interesting to see on what kind of corpora it will be able to count a bit more.
 
-Here is one more snippet using the best performing model `bs50s512d0.6` (temperature is again `0.5`).
+Here is one more snippet using the best performing model `bs50s512d0.6` (temperature is again 0.5).
 
 >Հոդված 21. Յուրաքանչյուր ոք ունի ազատ տեղաշարժվելու և բնակություն է կառավարության անդամներին:
  Հանրապետության Նախագահը պաշտոնն ստանձնում է Հանրապետության Նախագահը չի կարող զբաղվել ձեռնարկատիրական գործունեությամբ: <br>
  Հոդված 50. Հանրապետության Նախագահը պաշտոնն ստանձնում է Հանրապետության Նախագահի պաշտոնը թափուր մնալու դեպքում Հանրապետության Նախագահի արտահերթ ընտրությունը կազմված է վարչապետի առաջարկությամբ վերահսկողությունը <br> 
  1. Յուրաքանչյուր ոք ունի ազատ տեղաշարժվելու և բնակավայր ընտրելու իրավունք:
 
-There are no invalid words anymore. Sentenced are better formed. Sometimes the sentence is composed of two exact copies of different sentences that actually occur in the corpus. For example the combination `Հանրապետության Նախագահը պաշտոնն ստանձնում է` appears [7 times](https://github.com/YerevaNN/char-rnn-constitution/blob/master/data/input.txt#L130) in the corpus, and `Հանրապետության Նախագահը չի կարող զբաղվել ձեռնարկատիրական գործունեությամբ` appears [once](https://github.com/YerevaNN/char-rnn-constitution/blob/master/data/input.txt#L1501). So the samples are mostly boring. Although sometimes the combination of such two parts have a meaning. The following [generated sample](......) is a very good example, and doesn't appear in the corpus. 
+There are virtually no invalid words anymore (less than 0.5%, and most are one character typos). Sentences are better formed. Sometimes a sentence is composed of two exact copies of different sentences that actually occur in the corpus. For example the combination `Հանրապետության Նախագահը պաշտոնն ստանձնում է` appears [7 times](https://github.com/YerevaNN/char-rnn-constitution/blob/master/data/input.txt#L130) in the corpus, and `Հանրապետության Նախագահը չի կարող զբաղվել ձեռնարկատիրական գործունեությամբ` appears [once](https://github.com/YerevaNN/char-rnn-constitution/blob/master/data/input.txt#L1501). So the generated samples are often boring. Although sometimes the combination of such two parts does have a meaning. The following [article](https://github.com/YerevaNN/char-rnn-constitution/blob/master/samples/sample_bs50s512d0.6t0.5.txt#L222) is a very good example, and doesn't appear in the corpus. 
 
 >Հոդված 151. Հանրապետության Նախագահի հրամանագրերը և կարգադրությունները կատարում է Ազգային ժողովի նախագահը:
 
-We tried to increase the temperature to `1.0`
+When the temperature is increased to 0.75, the samples become more interesting.
+
+>Հոդված 52. Հանրապետության Նախագահի լիազորությունները սահմանվում են Սահմանադրությամբ և սահմանադրական դատարանի դատավորների մեկ մտնում առաջին ատյանի դատարանները: <br>
+ Հոդված 107. Ազգային ժողովի լիազորությունների ժամկետը _կեղերով_ բացասական տեղեկատվության ազատության ենթարկելու հարց հարուցելու կամ այլ գործադիր իշխանության, տեղական ինքնակառավարման մարմինների անկախության մասին.<br>
+ 7) եզրակացություն է տալիս իր լիազորությունների երաշխավորվում է միջազգային իրավունքի սկզբունքները և նախարարներից, ներկայացնում է Ազգային ժողովին եզրակացություններ ներկայացնելու համար:
+ 
+Typos are a bit more common. An "ordered list" is generated here which starts with `7` and has only one entry. Article numbers are not tied to `1`s anymore. Higher temperatures produce more nonexistent words.  
 
 ## NaNoGenMo
 
+Since 1999 every November is declared a [National Novel Writing Month](http://nanowrimo.org/), when people are encouraged to write a novel in one month. Since 2013, similar event is organized for algorithms. It's called [National Novel Generating Month](https://github.com/dariusk/NaNoGenMo-2015). The rules are very simple, each participant must share one generated novel (at least 50 000 words) and release the source code. [The Verge](http://www.theverge.com/2014/11/25/7276157/nanogenmo-robot-author-novel) wrote about last year's results.  
+
+[Armen Khachikyan](https://www.linkedin.com/in/armen-khachikyan-ba969218) told us about this, and we thought that we can take part in it with a long enough generated Constitution. Here is [our entry](). It was generated by the following command:
+
+{% highlight bash %}
+th sample.lua cv/lm_bs50s512d0.6_epoch50.00_0.3800.t7 -length 900000 -temperature 0.5 -gpuid 0 -primetext "Գ Լ ՈՒ Խ  1" > sample_bs50s512d0.6t0.5.txt
+{% endhighlight %}
+
+The model was generated by the following command:
+{% highlight bash %}
+th train.lua -data_dir data/ -batch_size 50 -dropout 0.6 -rnn_size 512 -gpuid 0 -savefile bs50s512d0.6 | tee log_bs50s512d0.6 
+{% endhighlight %}
+
+All related files are in our [repository on Github](https://github.com/YerevaNN/char-rnn-constitution).
