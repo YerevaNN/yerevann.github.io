@@ -4,6 +4,7 @@ title: Implementing Dynamic memory networks
 tags:
 - Recurrent neural networks
 - Natural language processing
+- draft
 ---
 
 The Allen Institute for Artificial Intelligence has organized a 4 month [contest](https://www.kaggle.com/c/the-allen-ai-science-challenge) in Kaggle on question answering. The aim is to create a system which can correctly answer the questions from the 8th grade science exams of US schools (biology, chemistry, physics etc.). DeepHack Lab organized a [scientific school + hackathon](http://qa.deephack.me/) devoted to this contest in Moscow. Our team decided to use this opportunity to explore the deep learning techniques on question answering (although they seem to be far behind traditional systems). We tried to implement the Dynamic memory networks described [in a paper by A. Kumar et al.](http://arxiv.org/abs/1506.07285). Here we report some preliminary results. In the next blog post we will describe the techniques we used to get to top 5% in the contest.
@@ -28,6 +29,9 @@ Questions in the bAbI dataset are grouped into 20 types, each of them has 1000 s
 |![some of the bAbI tasks](/public/2016-02-06/babi2.png "some of the bAbI tasks") |
 | --- |
 | Some of the bAbI tasks. More examples can be found in the [paper](http://arxiv.org/pdf/1502.05698v10.pdf). | 
+
+
+## Memory networks
 
 
 
