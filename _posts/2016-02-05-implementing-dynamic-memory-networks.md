@@ -22,7 +22,7 @@ The questions of this contest are quite hard, they not only require lots of know
 
 But there is already some work on creating question answering / reasoning systems using neural approaches. As another lecturer of the DeepHack event, [Tomas Mikolov](https://www.youtube.com/watch?v=gi4Zf59_IcU), told us, we should start from easy, even synthetic questions and try to gradually increase the difficulty. This roadmap towards building intelligent question answering systems is described in [a paper](http://arxiv.org/abs/1502.05698) by Facebook researchers Weston, Bordes, Chopra, Rush, Merriënboer and Mikolov, where the authors introduce a benchmark of toy questions called [bAbI tasks](http://fb.ai/babi) which test several basic reasoning capabilities of a QA system. 
 
-Questions in the bAbI dataset are grouped into 20 types, each of them has 1000 samples for training and another 1000 samples for testing. There is also a version with 10K samples, but as Mikolov told during the lecture, deep learning is not necessarily about large datasets, and in this setting it is more interesting to see if the systems can learn answering questions by looking at a few training samples. 
+Questions in the bAbI dataset are grouped into 20 types, each of them has 1000 samples for training and another 1000 samples for testing. A system is said to have passed a given task, if it correctly answers at least 95% of the questions in the test set. There is also a version with 10K samples, but as Mikolov told during the lecture, deep learning is not necessarily about large datasets, and in this setting it is more interesting to see if the systems can learn answering questions by looking at a few training samples. 
 
 |![some of the bAbI tasks](/public/2016-02-06/babi1.png "some of the bAbI tasks") |
 | --- |
@@ -33,6 +33,23 @@ Questions in the bAbI dataset are grouped into 20 types, each of them has 1000 s
 
 ## Memory networks
 
+bAbI tasks were first evaluated on an LSTM-based system, which achieve 50% performance on average and do not pass any task. Then the authors of the paper try [Memory Networks](http://arxiv.org/abs/1410.3916) by Weston et al. It is a recurrent network which has a long-term memory component where it can learn to write some data (the input sentences) and read them later. 
+
+bAbI tasks include not only the answers to the questions but also the numbers of those sentences which help answer the question. This information is taken into account when training MemNN, they not only get the correct answers but also an information about which input sentences affect the answer. Under this so called _strongly supervised_ setting "plain" Memory networks pass 7 of the 20 tasks. Then the authors apply some modifications to them and pass 16 tasks.
+
+We are mostly interested in _weakly supervised_ setting, because the additional information on important sentences is not available in many real scenarios. This was investigated in a paper by Sukhbaatar, Szlam, Weston and Fergus (from New York University and Facebook AI Research) where they introduce [End-to-end memory networks](http://arxiv.org/abs/1503.08895) (MemN2N). They investigate many different configurations of these systems and the best version passes 9 tasks out of 20. Facebook's MemN2N repository on GitHub lists [some implementations of MemN2N](https://github.com/facebook/MemNN).
+
+## Dynamic memory networks
+
+
+
+## Next steps
+
+Overfitting.
+
+Answer choices.
+
+Evaluate on MCTest.
 
 
 
