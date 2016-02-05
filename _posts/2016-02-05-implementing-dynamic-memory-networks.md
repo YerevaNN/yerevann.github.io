@@ -51,9 +51,9 @@ Another advancement in the direction of memory networks was made by Kumar, Irsoy
 | --- |
 | High-level structure of DMN from the [paper](http://arxiv.org/abs/1506.07285). | 
 
-The input of the DMN is a sequence of word vectors of input sentences. We followed the paper and used pretrained [GloVe vectors](http://nlp.stanford.edu/projects/glove/) and added the dimensionality of word vectors to the list of hyperparamaters (controlled by the command line argument `--word_vector_size`). DMN architecture treats these vectors as part of a so called `Semantic memory` (in contrast to the `Episodic memory`) which may contain other knowledge as well. Our implementation uses only word vectors and does *not* fine tune them during the training, so we don't consider it as a part of the neural network.
+The input of the DMN is a sequence of word vectors of input sentences. We followed the paper and used pretrained [GloVe vectors](http://nlp.stanford.edu/projects/glove/) and added the dimensionality of word vectors to the list of hyperparamaters (controlled by the command line argument `--word_vector_size`). DMN architecture treats these vectors as part of a so called _semantic memory_ (in contrast to the _episodic memory_) which may contain other knowledge as well. Our implementation uses only word vectors and does *not* fine tune them during the training, so we don't consider it as a part of the neural network.
 
-The first module of DMN is an _input module_ that is a [gated recurrent unit](http://arxiv.org/abs/1412.3555) (GRU) running on the sequence of word vectors. GRU is a recurrent unit with 2 more gates that control when its content is updated and when its content is flushed. Its hidden state is meant to represent the input processed so far in a vector. Input module outputs its hidden states either after every word (`--input_mask word`) or after every sentence (`--input_mask sentence`). These outputs are called `facts`.
+The first module of DMN is an _input module_ that is a [gated recurrent unit](http://arxiv.org/abs/1412.3555) (GRU) running on the sequence of word vectors. GRU is a recurrent unit with 2 gates that control when its content is updated and when its content is erased. The hidden state of the input module is meant to represent the input processed so far in a vector. Input module outputs its hidden states either after every word (`--input_mask word`) or after every sentence (`--input_mask sentence`). These outputs are called `facts`.
 
 
 |![Formal definition of GRU](/public/2016-02-06/gru.png "Formal definition of GRU") |
@@ -68,29 +68,30 @@ The fact and question vectors extracted from the input enter the _episodic memor
 | --- |
 | Details of DMN architecture from the [paper](http://arxiv.org/abs/1506.07285). | 
 
-The inner GRU generates the episodes by passing over the facts from the input module. But when updating its inner state, the GRU takes into account the output of some `attention function` on the current fact. Attention function gives a score (between 0 and 1) to each of the fact, and GRU (softly) ignores the facts having low scores. Attention function depends on the question vector, current fact, and current state of the memory. After each full pass on all facts the inner GRU outputs an episode which is fed into the outer GRU which updates the memory. Then because of the updated memory the attention may give different scores to the facts. The number of step of the outer GRU, that is the number of episodes, can be determined dynamically, but we fix it to simplify the implementation. It is configured by `--memory_hops` setting.
+The inner GRU generates the episodes by passing over the facts from the input module. But when updating its inner state, the GRU takes into account the output of some `attention function` on the current fact. Attention function gives a score (between 0 and 1) to each of the fact, and GRU (softly) ignores the facts having low scores. Attention function is a simple 2 layer neural network depending on the question vector, current fact, and current state of the memory. After each full pass on all facts the inner GRU outputs an _episode_ which is fed into the outer GRU which on its turn updates the memory. Then because of the updated memory the attention may give different scores to the facts. So new episodes can be created. The number of steps of the outer GRU, that is the number of the episodes, can be determined dynamically, but we fix it to simplify the implementation. It is configured by `--memory_hops` setting.
 
-All facts, episodes and memories are in the same `n`-dimensional space, which is controlled by the command line argument `--dim`. Inner and outer GRUs share the weights.
+All facts, episodes and memories are in the same n-dimensional space, which is controlled by the command line argument `--dim`. Inner and outer GRUs share their weights.
 
 The final state of the memory is being fed into the _answer module_, which produces the answer. We have implemented two kinds of answer modules. First is a simple linear layer on top of the memory vector with softmax activation (`--answer_module feedforward`). This is useful if each answer is just one word (like in the bAbI dataset). The second kind of answer module is another GRU that can produce multiple words (`--answer_module recurrent`). Its implementation is half baked now, as we didn't need it for bAbI.  
 
-The whole system is end-to-end differentiable and is trained using stochastic gradient descent. We use [`adadelta`](http://arxiv.org/abs/1212.5701) by default.
+The whole system is end-to-end differentiable and is trained using stochastic gradient descent. We use [`adadelta`](http://arxiv.org/abs/1212.5701) by default. More formulas and details of architecture can be found in the original paper. But the paper does not contain many implementation details, so we may have diverged from the original implementation.
 
 ## Initial experiments
 
+We have tested this system on bAbI tasks with a few randomly selected hyperparameters. We initialized the word vectors by using 50-dimensional GloVe vectors trained on Wikipedia. Answer module is a simple feedforward classifier over the vocabulary (which is _very_ limited in bAbI tasks). Here are the results.
+ 
+|![Results](/public/2016-02-06/stats.png "Results") |
+| --- |
+| First two columns are for strongly supervised systems [MemNN](http://arxiv.org/abs/1410.3916) and [DMN](http://arxiv.org/abs/1506.07285). Third column is the best results of [MemN2N](http://arxiv.org/abs/1410.3916). The last 3 columns are our results with different dimensions of the memory. | 
 
+All related files are in the [Github repository](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano).
 
 ## Next steps
 
-Visualizing
+* We need a good way to visualize the attention in the episodic memory. This will help us understand what is exactly going on inside the system. Many papers now include such visualizations on some examples.
+* Our model overfits on many of the tasks even with 25-dimensional memory. We briefly experimented with L2 regularization but it didn't help much (`--l2`). 
+* Currently we are working on a slightly modified architecture which will be optimized for multiple choice questions. Basically it will include one more input module which will read the answer choices and will provide one more input for the attention mechanism.
+* Then we will be able to evaluate our code on other, more complex QA datasets like [MCTest](http://research.microsoft.com/en-us/um/redmond/projects/mctest/).
+* Training with batches is not properly implemented yet. There are several technical challenges related to the variable length of input sequences. These become much more complicated because of such [bugs in Theano](https://github.com/Theano/Theano/issues/1772).
 
-Overfitting.
-
-Answer choices.
-
-Evaluate on MCTest.
-
-
-
-
-All related files are in our [Github repository](https://github.com/YerevaNN/char-rnn-constitution).
+We would like to thank the organizers of DeepHack.Q&A for the really amazing atmosphere.
