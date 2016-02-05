@@ -4,7 +4,6 @@ title: Implementing Dynamic memory networks
 tags:
 - Recurrent neural networks
 - Natural language processing
-- draft
 ---
 
 The Allen Institute for Artificial Intelligence has organized a 4 month [contest](https://www.kaggle.com/c/the-allen-ai-science-challenge) in Kaggle on question answering. The aim is to create a system which can correctly answer the questions from the 8th grade science exams of US schools (biology, chemistry, physics etc.). DeepHack Lab organized a [scientific school + hackathon](http://qa.deephack.me/) devoted to this contest in Moscow. Our team decided to use this opportunity to explore the deep learning techniques on question answering (although they seem to be far behind traditional systems). We tried to implement Dynamic memory networks described [in a paper by A. Kumar et al](http://arxiv.org/abs/1506.07285). Here we report some preliminary results. In the next blog post we will describe the techniques we used to get to top 5% in the contest.
@@ -45,7 +44,7 @@ We are mostly interested in _weakly supervised_ setting, because the additional 
 
 ## Dynamic memory networks
 
-Another advancement in the direction of memory networks was made by Kumar, Irsoy, Ondruska, Iyyer, Bradbury, Gulrajani and Socher from Metamind. By the way, Richard Socher is the author of [an excellent course on deep learning and NLP](http://cs224d.stanford.edu/) at Stanford, which helped as a lot to get into the topic. Their [paper](http://arxiv.org/abs/1506.07285) introduces a new system called Dynamic memory networks (DMN) which passes 18 bAbI tasks in the strongly supervised setting. The paper does not talk about weakly supervised setting, so we decided to implement DMN from scratch in [Theano](http://deeplearning.net/software/theano/).
+Another advancement in the direction of memory networks was made by Kumar, Irsoy, Ondruska, Iyyer, Bradbury, Gulrajani and Socher from Metamind. By the way, Richard Socher is the author of [an excellent course on deep learning and NLP](http://cs224d.stanford.edu/) at Stanford, which helped us a lot to get into the topic. Their [paper](http://arxiv.org/abs/1506.07285) introduces a new system called Dynamic memory networks (DMN) which passes 18 bAbI tasks in the strongly supervised setting. The paper does not talk about weakly supervised setting, so we decided to implement DMN from scratch in [Theano](http://deeplearning.net/software/theano/).
 
 |![High-level structure of DMN](/public/2016-02-06/dmn-high-level.png "High-level structure of DMN") |
 | --- |
