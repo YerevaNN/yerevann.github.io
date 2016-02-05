@@ -37,13 +37,28 @@ bAbI tasks were first evaluated on an LSTM-based system, which achieve 50% perfo
 
 bAbI tasks include not only the answers to the questions but also the numbers of those sentences which help answer the question. This information is taken into account when training MemNN, they not only get the correct answers but also an information about which input sentences affect the answer. Under this so called _strongly supervised_ setting "plain" Memory networks pass 7 of the 20 tasks. Then the authors apply some modifications to them and pass 16 tasks.
 
+|![End-to-end memory networks](/public/2016-02-06/memnn.png "End-to-end memory networks") |
+| --- |
+| The structure of MemN2N from the [paper](http://arxiv.org/abs/1410.3916). | 
+
 We are mostly interested in _weakly supervised_ setting, because the additional information on important sentences is not available in many real scenarios. This was investigated in a paper by Sukhbaatar, Szlam, Weston and Fergus (from New York University and Facebook AI Research) where they introduce [End-to-end memory networks](http://arxiv.org/abs/1503.08895) (MemN2N). They investigate many different configurations of these systems and the best version passes 9 tasks out of 20. Facebook's MemN2N repository on GitHub lists [some implementations of MemN2N](https://github.com/facebook/MemNN).
 
 ## Dynamic memory networks
 
+Another advancement in the direction of memory networks was made by Kumar, Irsoy, Ondruska, Iyyer, Bradbury, Gulrajani and Socher from Metamind. Richard Socher is the author of [an excellent course on deep learning and NLP](http://cs224d.stanford.edu/) at Stanford, which helped as a lot to get into the topic. Their [paper](http://arxiv.org/abs/1506.07285) introduces a new system called Dynamic memory networks (DMN) which passes 18 bAbI tasks in the strongly supervised setting. The paper does not talk about weakly supervised setting and we decided to implement DMN from scratch in [Theano](http://deeplearning.net/software/theano/).
+
+|![High-level structure of DMN](/public/2016-02-06/dmn-high-level.png "High-level structure of DMN") |
+| --- |
+| High-level structure of DMN from the [paper](http://arxiv.org/abs/1506.07285). | 
+
+
+## Initial experiments
+
 
 
 ## Next steps
+
+Visualizing
 
 Overfitting.
 
