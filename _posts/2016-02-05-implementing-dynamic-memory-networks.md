@@ -80,11 +80,17 @@ The whole system is end-to-end differentiable and is trained using stochastic gr
 
 We have tested this system on bAbI tasks with a few randomly selected hyperparameters. We initialized the word vectors by using 50-dimensional GloVe vectors trained on Wikipedia. Answer module is a simple feedforward classifier over the vocabulary (which is _very_ limited in bAbI tasks). Here are the results.
  
-|![Results](/public/2016-02-06/stats.png "Results") |
+|![Results](/public/2016-02-06/results.png "Results") |
 | --- |
 | First two columns are for strongly supervised systems [MemNN](http://arxiv.org/abs/1410.3916) and [DMN](http://arxiv.org/abs/1506.07285). Third column is the best results of [MemN2N](http://arxiv.org/abs/1410.3916). The last 3 columns are our results with different dimensions of the memory. | 
 
-All related files are in the [Github repository](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano).
+First basic observation is that weakly supervised systems are generally worse than the strongly supervised ones. When compared to MemN2N, our system performs much worse on the tasks 2, 3 and 16. On the other hand, our results on tasks 5, 6, 8, 9, 10 and 18 are better than MemN2N. Surprisingly what we got on the 17th task is better than in strongly supervised systems!
+
+Our system converges very fast on some of the tasks (like the first one), overfits on many other tasks and does not converge on tasks 2, 3 and 19. 
+
+19th task (path finding) is not solved by any of these systems. [Wojciech Zaremba](https://www.youtube.com/watch?v=ezE-13X0UoM) from OpenAI informed us about one system which managed to solve it using 10K training samples. This remains a very interesting challenge for us. We need to do lots of experiments with various parameters to reach some meaningful conclusions. 
+
+This implementation of DMN is available on [Github](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano). We really need lots of feedback on this code. 
 
 ## Next steps
 
@@ -92,6 +98,6 @@ All related files are in the [Github repository](https://github.com/YerevaNN/Dyn
 * Our model overfits on many of the tasks even with 25-dimensional memory. We briefly experimented with L2 regularization but it didn't help much (`--l2`). 
 * Currently we are working on a slightly modified architecture which will be optimized for multiple choice questions. Basically it will include one more input module which will read the answer choices and will provide one more input for the attention mechanism.
 * Then we will be able to evaluate our code on other, more complex QA datasets like [MCTest](http://research.microsoft.com/en-us/um/redmond/projects/mctest/).
-* Training with batches is not properly implemented yet. There are several technical challenges related to the variable length of input sequences. These become much more complicated because of such [bugs in Theano](https://github.com/Theano/Theano/issues/1772).
+* Training with batches is not properly implemented yet. There are several technical challenges related to the variable length of input sequences. It is much harder to manage because  become much more complicated because of such [bugs in Theano](https://github.com/Theano/Theano/issues/1772).
 
-We would like to thank the organizers of DeepHack.Q&A for the really amazing atmosphere.
+We would like to thank the organizers of DeepHack.Q&A for the really amazing atmosphere here in [PhysTech](https://mipt.ru/).
