@@ -67,18 +67,20 @@ So far our best results are obtained by training `dmn_smooth` with 100 neurons f
 | **Average accuracy** |	**84.775%**	|	**75.05%**	|
 | **Solved tasks** |	**10**	|	**8**	|
 
-We solve (obtain >95% accuracy) 8 tasks. Our system overperforms MemN2N on some tasks, but on average stays behind by 10 percentage points. Experiments show that our networks do not manage to find connections between several sentences at once (tasks 2, 3 etc.). Task 19 (positional reasoning) remains the most difficult one. It is actually the only task on which none of our implementations overfit. The authors of [Neural Reasoner] claim some success on that task when training on 10 000 examples. We use only 1000 samples per task for all experiments.
+We solve (obtain >95% accuracy) 8 tasks. Our system overperforms MemN2N on some tasks, but on average stays behind by 10 percentage points. Experiments show that our networks do not manage to find connections between several sentences at once (tasks 2, 3 etc.). Task 19 (path finding) remains the most difficult one. It is actually the only task on which none of our implementations overfit. The authors of [Neural Reasoner](http://arxiv.org/abs/1508.05508) claim some success on that task when training on 10 000 examples. We use only 1000 samples per task for all experiments.
 
 ## Visualizing Dynamic memory networks
 
 We have created a web application / playground for Dynamic memory networks focused on bAbI tasks. It allows to choose a pretrained model and send custom input sentences and questions. The app shows the predicted answer and visualizes attention scores for each memory step. 
 
-![Playground for bAbI tasks](/public/2016-02-23/dmn-ui.png "Playground for bAbI tasks")
+| ![Playground for bAbI tasks](/public/2016-02-23/dmn-ui.png "Playground for bAbI tasks") |
+| --- |
+| Web-based [playground for bAbI tasks](http://yerevann.com/dmn-ui/) |
 
-These visualizations show that the network mainly focuses on one input sentence and does not jump from one to another, which makes impossible to answer question from tasks 2 or 3.  
+These visualizations show that the network does not significantly change its attention for different episodes, so it is very hard to correctly answer the questions from tasks 2 or 3.  
 
 Web app is accessible at **[http://yerevann.com/dmn-ui/](http://yerevann.com/dmn-ui/)**. Note that the vocabulary of bAbI tasks is quite limited, and our implementation of DMN cannot process out-of-vocabulary words. `Sample` button is a good starting point, it gives a random sample from bAbI test set.
 
 ## Looking for feedback
 
-Everything described in this post is available on Github. DMN implementations are [here](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano), Flask-based server of the web app is in the [/server/ folder](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano/tree/master/server), UI is in [another repository](https://github.com/YerevaNN/dmn-ui). Feel free to fork, report issues and share your thoughts. 
+Everything described in this post is available on Github. DMN implementations are [here](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano), Flask-based server of the web app is in the [/server/ folder](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano/tree/master/server), UI is in [another repository](https://github.com/YerevaNN/dmn-ui). Feel free to fork, report issues, and please share your thoughts. 
