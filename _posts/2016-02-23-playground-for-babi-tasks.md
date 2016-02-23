@@ -5,7 +5,6 @@ tags:
 - Recurrent neural networks
 - Natural language processing
 - Visualization
-- draft
 ---
 
 Recently we have [implemented]({% post_url 2016-02-05-implementing-dynamic-memory-networks %}) Dynamic memory networks in Theano and trained it on Facebook's bAbI tasks which are designed for testing basic reasoning abilities. Our implementation now solves 8 out of 20 bAbI tasks which is still behind state-of-the-art. Today we release a [web application](http://yerevann.com/dmn-ui/) for testing and comparing several network architectures and pretrained models.
