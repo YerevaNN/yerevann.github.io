@@ -37,7 +37,7 @@ We plan to bring some ideas from the [Neural Reasoner paper](http://arxiv.org/ab
  
 
 ## Results
-We train our implementations on bAbI tasks in a weakly supervised setting, as described in our [previous post](http://yerevann.github.io/2016/02/05/implementing-dynamic-memory-networks/#memory-networks). Here we compare our results to [End-to-end memory networks](http://arxiv.org/abs/1410.3916).
+We train our implementations on bAbI tasks in a weakly supervised setting, as described in our [previous post](http://yerevann.github.io/2016/02/05/implementing-dynamic-memory-networks/#memory-networks). Here we compare our results to [End-to-end memory networks](http://arxiv.org/abs/1410.3916) (MemN2N).
 
 So far our best results are obtained by training `dmn_smooth` with 100 neurons for internal representations, 5 memory hops, using simple gradient descent for 11 epochs. We train jointly on all 20 bAbI tasks. 
 
@@ -66,7 +66,7 @@ So far our best results are obtained by training `dmn_smooth` with 100 neurons f
 | **Average accuracy** |	**84.775%**	|	**75.05%**	|
 | **Solved tasks** |	**10**	|	**8**	|
 
-We solve (obtain >95% accuracy) 8 tasks. Our system overperforms MemN2N on some tasks, but on average stays behind by 10 percentage points. Experiments show that our networks do not manage to find connections between several sentences at once (tasks 2, 3 etc.). Task 19 (path finding) remains the most difficult one. It is actually the only task on which none of our implementations overfit. The authors of [Neural Reasoner](http://arxiv.org/abs/1508.05508) claim some success on that task when training on 10 000 examples. We use only 1000 samples per task for all experiments.
+We solve (obtain >95% accuracy) 8 tasks. Our system outperforms MemN2N on some tasks, but on average stays behind by 10 percentage points. Experiments show that our networks do not manage to find connections between several sentences at once (tasks 2, 3 etc.). Task 19 (path finding) remains the most difficult one. It is actually the only task on which none of our implementations overfit. The authors of [Neural Reasoner](http://arxiv.org/abs/1508.05508) claim some success on that task when training on 10 000 examples. We use only 1000 samples per task for all experiments.
 
 ## Visualizing Dynamic memory networks
 
