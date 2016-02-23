@@ -8,7 +8,7 @@ tags:
 - draft
 ---
 
-Recently we have [implemented]({% post_url 2016-02-05-implementing-dynamic-memory-networks %})) Dynamic memory networks in Theano and trained it on Facebook's bAbI tasks which are designed for testing basic reasoning abilities. Our implementation now solves 8 out of 20 bAbI tasks which is still behind state-of-the-art. Today we release a [web application](http://yerevann.com/dmn-ui/) for testing and comparing several network architectures and pretrained models.
+Recently we have [implemented]({% post_url 2016-02-05-implementing-dynamic-memory-networks %}) Dynamic memory networks in Theano and trained it on Facebook's bAbI tasks which are designed for testing basic reasoning abilities. Our implementation now solves 8 out of 20 bAbI tasks which is still behind state-of-the-art. Today we release a [web application](http://yerevann.com/dmn-ui/) for testing and comparing several network architectures and pretrained models.
 
 <!--more-->
 
@@ -17,7 +17,7 @@ Recently we have [implemented]({% post_url 2016-02-05-implementing-dynamic-memor
 * TOC
 {:toc}
 
-## Architecture details
+## Attention module
 
 One of the key parts in the DMN architecture, as described in the [original paper](http://arxiv.org/abs/1506.07285), is its attention system. DMN obtains internal representations of input sentences and question and passes these to the episodic memory module. Episodic memory passes over all the facts, generates _episodes_, which are finally combined into a _memory_. Each episode is created by looking at all input sentences according to some _attention_. Attention system gives a score for each of the sentences, and if the score is low for some sentence, it will be ignored when constructing the episode. 
 
@@ -58,4 +58,4 @@ Web app is accessible at [http://yerevann.com/dmn-ui/](http://yerevann.com/dmn-u
 
 ## Give feedback and contribute!
 
-Everything described in this post is available on Github. DMN implementations are [here](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano), the Flask-based server of the web app is in the [/server/ folder](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano/tree/master/server), UI is [another repository](https://github.com/YerevaNN/dmn-ui). 
+Everything described in this post is available on Github. DMN implementations are [here](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano), Flask-based server of the web app is in the [/server/ folder](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano/tree/master/server), UI is in [another repository](https://github.com/YerevaNN/dmn-ui). Feel free to fork, report issues and share your thoughts.
