@@ -21,12 +21,11 @@ Recently we have [implemented]({% post_url 2016-02-05-implementing-dynamic-memor
 
 One of the key parts in the DMN architecture, as described in the [original paper](http://arxiv.org/abs/1506.07285), is its attention system. DMN obtains internal representations of input sentences and question and passes these to the episodic memory module. Episodic memory passes over all the facts, generates _episodes_, which are finally combined into a _memory_. Each episode is created by looking at all input sentences according to some _attention_. Attention system gives a score for each of the sentences, and if the score is low for some sentence, it will be ignored when constructing the episode. 
 
-Attention system is a simple 2 layer neural network where input is a vector of features which are computed based on input sentence, question and current state of the memory. This vector of features is described in the paper as follows
-|![attention module input](/public/2016-02-23/attention-vector.png "attention module input") |
-| --- |
-| Input vector to the neural network implementing attention |
+Attention system is a simple 2 layer neural network where input is a vector of features which are computed based on input sentence, question and current state of the memory. This vector of features is described in the paper as follows:
 
-We tried to stay as close to the original as possible in our first implementation. But probably we understood these expressions too literally. We implemented `|c-q|` as an [absolute value](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano/blob/master/dmn_basic.py#L217) of a difference of two vectors, which caused lots of trouble, as Theano's implementation of (the gradient of) `abs` function gave `NaN`s at random during training. Then, the terms `cWq` and `cWm` actually produce [just two numbers](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano/blob/master/dmn_basic.py#L215), and they do not make a real difference in a large vector.
+![attention module input](/public/2016-02-23/attention-vector.png "attention module input")
+
+where `c` is an input sentence, `q` is the question, `m` is the current state of the memory. We tried to stay as close to the original as possible in our first implementation. But probably we understood these expressions too literally. We implemented `|c-q|` as an [absolute value](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano/blob/master/dmn_basic.py#L217) of a difference of two vectors, which caused lots of trouble, as Theano's implementation of (the gradient of) `abs` function gave `NaN`s at random during training. Then, the terms `cWq` and `cWm` actually produce [just two numbers](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano/blob/master/dmn_basic.py#L215), and they do not make a real difference in a large vector.
    
 Later we implemented another version called [`dmn_smooth`](https://github.com/YerevaNN/Dynamic-memory-networks-in-Theano/blob/master/dmn_smooth.py#L223) which uses Euclidean distance between two vectors (instead of `abs`). This version is much more stable and gives better results. It is interesting to note that this version trains faster on CPU than on our GPU (GTX 980). It could be because of our not so optimal code or a [known issue] in Theano's `scan` function.
 
