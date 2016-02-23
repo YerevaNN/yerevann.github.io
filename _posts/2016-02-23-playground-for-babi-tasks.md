@@ -42,7 +42,30 @@ We train our implementations on bAbI tasks in a weakly supervised setting, as de
 
 So far our best results are obtained by training `dmn_smooth` with 100 neurons for internal representations, 5 memory hops, trained using simple gradient descent for 11 epochs. We train jointly on all 20 bAbI tasks. 
 
-Table
+| Task | MemN2N best | Joint100 75.05% |
+| 1. Single supporting fact |	99.9	|	100	|
+| 2. Two supporting facts |	81.2	|	39.7	|
+| 3. Three supporting facts |	68.3	|	41.5	|
+| 4. Two argument relations |	82.5	|	75.5	|
+| 5. Three arguments relations |	87.1	|	50.1	|
+| 6. Yes/no questions |	98	|	97.7	|
+| 7. Counting |	89.9	|	91.4	|
+| 8. Lists/sets |	93.9	|	95.2	|
+| 9. Simple negation |	98.5	|	99	|
+| 10. Indefinite knowledge |	97.4	|	87.3	|
+| 11. Basic coreference |	96.7	|	100	|
+| 12. Conjuction |	100	|	87	|
+| 13. Compound coreference |	99.5	|	96.4	|
+| 14. Time reasoning |	98	|	73.1	|
+| 15. Basic deduction |	98.2	|	53.9	|
+| 16. Basic induction |	49	|	49.5	|
+| 17. Positional reasoning |	57.4	|	59.3	|
+| 18. Size reasoning |	90.8	|	98.3	|
+| 19. Path finding |	9.4	|	9	|
+| 20. Agent's motivations |	99.8	|	97.1	|
+| Average accuracy |	84.775	|	75.05	|
+| Solved tasks |	10	|	8	|
+
 
 We solve (obtain >95% accuracy) on 8 tasks. Experiments show that our networks do not manage to use several sentences at once (tasks 2, 3 etc.). Task 19 (positional reasoning) remains the most difficult one. It is actually the only task on which none of our implementations overfits. The authors of [Neural Reasoner] claim some success on that task when training on 10 000 examples. We use only 1000 samples per task for all experiments.
 
