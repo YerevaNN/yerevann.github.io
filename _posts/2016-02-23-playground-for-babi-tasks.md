@@ -44,30 +44,30 @@ So far our best results are obtained by training `dmn_smooth` with 100 neurons f
 
 | Task | MemN2N best version | Joint100 75.05% |
 | --- | ----- | ------ |
-| 1. Single supporting fact |	99.9	|	100	|
-| 2. Two supporting facts |	81.2	|	39.7	|
-| 3. Three supporting facts |	68.3	|	41.5	|
-| 4. Two argument relations |	82.5	|	75.5	|
-| 5. Three arguments relations |	87.1	|	50.1	|
-| 6. Yes/no questions |	98	|	97.7	|
-| 7. Counting |	89.9	|	91.4	|
-| 8. Lists/sets |	93.9	|	95.2	|
-| 9. Simple negation |	98.5	|	99	|
-| 10. Indefinite knowledge |	97.4	|	87.3	|
-| 11. Basic coreference |	96.7	|	100	|
-| 12. Conjuction |	100	|	87	|
-| 13. Compound coreference |	99.5	|	96.4	|
-| 14. Time reasoning |	98	|	73.1	|
-| 15. Basic deduction |	98.2	|	53.9	|
-| 16. Basic induction |	49	|	49.5	|
-| 17. Positional reasoning |	57.4	|	59.3	|
-| 18. Size reasoning |	90.8	|	98.3	|
-| 19. Path finding |	9.4	|	9	|
-| 20. Agent's motivations |	99.8	|	97.1	|
-| Average accuracy |	84.775	|	75.05	|
-| Solved tasks |	10	|	8	|
+| 1. Single supporting fact |	**99.9%**	|	**100%**	|
+| 2. Two supporting facts |	81.2%	|	39.7%	|
+| 3. Three supporting facts |	68.3%	|	41.5%	|
+| 4. Two argument relations |	82.5%	|	75.5%	|
+| 5. Three arguments relations |	87.1%	|	50.1%	|
+| 6. Yes/no questions |	**98%**	|	**97.7%**	|
+| 7. Counting |	89.9%	|	91.4%	|
+| 8. Lists/sets |	93.9%	|	**95.2%**	|
+| 9. Simple negation |	**98.5%**	|	**99%**	|
+| 10. Indefinite knowledge |	**97.4%**	|	87.3%	|
+| 11. Basic coreference |	**96.7%**	|	**100%**	|
+| 12. Conjuction |	**100%**	|	87%	|
+| 13. Compound coreference |	**99.5%**	|	**96.4%**	|
+| 14. Time reasoning |	**98%**	|	73.1%	|
+| 15. Basic deduction |	**98.2%**	|	53.9%	|
+| 16. Basic induction |	49%	|	49.5%	|
+| 17. Positional reasoning |	57.4%	|	59.3%	|
+| 18. Size reasoning |	90.8%	|	**98.3%**	|
+| 19. Path finding |	9.4%	|	9%	|
+| 20. Agent's motivations |	**99.8%**	|	**97.1%**	|
+| **Average accuracy** |	**84.775%**	|	**75.05%**	|
+| **Solved tasks** |	**10**	|	**8**	|
 
-We solve (obtain >95% accuracy) on 8 tasks. Experiments show that our networks do not manage to find connections between several sentences at once (tasks 2, 3 etc.). Task 19 (positional reasoning) remains the most difficult one. It is actually the only task on which none of our implementations overfits. The authors of [Neural Reasoner] claim some success on that task when training on 10 000 examples. We use only 1000 samples per task for all experiments.
+We solve (obtain >95% accuracy) 8 tasks. Our system overperforms MemN2N on some tasks, but on average stays behind by 10 percentage points. Experiments show that our networks do not manage to find connections between several sentences at once (tasks 2, 3 etc.). Task 19 (positional reasoning) remains the most difficult one. It is actually the only task on which none of our implementations overfit. The authors of [Neural Reasoner] claim some success on that task when training on 10 000 examples. We use only 1000 samples per task for all experiments.
 
 ## Visualizing Dynamic memory networks
 
@@ -77,7 +77,7 @@ We have created a web application / playground for Dynamic memory networks focus
 
 These visualizations show that the network mainly focuses on one input sentence and does not jump from one to another, which makes impossible to answer question from tasks 2 or 3.  
 
-Web app is accessible at [http://yerevann.com/dmn-ui/](http://yerevann.com/dmn-ui/). Note that the vocabulary of bAbI tasks is quite limited, and our implementation of DMN cannot process out-of-vocabulary words. `Sample` button is a good starting point, it gives a random sample from bAbI test set.
+Web app is accessible at **[http://yerevann.com/dmn-ui/](http://yerevann.com/dmn-ui/)**. Note that the vocabulary of bAbI tasks is quite limited, and our implementation of DMN cannot process out-of-vocabulary words. `Sample` button is a good starting point, it gives a random sample from bAbI test set.
 
 ## Looking for feedback
 
