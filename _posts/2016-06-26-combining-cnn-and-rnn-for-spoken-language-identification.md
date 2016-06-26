@@ -91,7 +91,7 @@ During the training we accidentally discovered a [bug in Theano](https://github.
 
 The spectrogram can be viewed as a sequence of column vectors that consist of 256 (or 128, if only <5.5KHz frequencies are used) numbers. We apply [recurrent networks](https://en.wikipedia.org/wiki/Recurrent_neural_network) with 500 [GRU cells](https://arxiv.org/abs/1412.3555) in each layer on these sequences. 
 
-![GRU runs directly on the spectrogram](/public/2016-06-27/rnn.png "GRU runs directly on the spectrogram")
+![GRU runs directly on the spectrogram](/public/2016-06-26/rnn.png "GRU runs directly on the spectrogram")
 
 | Network| Accuracy| Notes|
 |----|----|----|
@@ -109,11 +109,11 @@ The general architecture of these combinations is a convolutional feature extrac
 
 The output of the CNN is a set of several channels (also known as *feature maps*). We can have separate GRUs acting on each channel (with or without weight sharing) as described in this picture:
 
-![Multiple GRUs run on CNN output](/public/2016-06-27/cnn-multi-rnn.png "Multiple GRUs run on CNN output")
+![Multiple GRUs run on CNN output](/public/2016-06-26/cnn-multi-rnn.png "Multiple GRUs run on CNN output")
 
 Another option is to interpret CNN's output as a 3D-tensor and run a single GRU on 2D slices of that tensor:
 
-![Single GRU runs on CNN output](/public/2016-06-27/cnn-one-rnn.png "Single GRU runs on CNN output")
+![Single GRU runs on CNN output](/public/2016-06-26/cnn-one-rnn.png "Single GRU runs on CNN output")
 
 The latter option has more parameters, but the information from different channels is mixed inside the GRU, and it seems to improve performance. This architecture is similar to the one described in [this paper](http://static.googleusercontent.com/media/research.google.com/en//pubs/archive/43455.pdf) on speech recognition, except that they also use some residual connections ("shortcuts") from input to RNN and from CNN to fully connected layers. It is interesting to note that recently it was shown that similar architectures work well for [text classification](http://arxiv.org/abs/1602.00367).
 
