@@ -22,7 +22,7 @@ Last year Hrayr used [convolutional networks to identify spoken language]({% pos
 As before, the inputs of the networks are spectrograms of speech recordings. It seems spectrograms are the standard way to represent audio for deep learning systems (see ["Listen, Attend and Spell"](http://arxiv.org/abs/1508.01211) and ["Deep Speech 2: End-to-End Speech Recognition in
 English and Mandarin"](http://arxiv.org/abs/1512.02595)).
 
-Some networks use up to 11khz frequencies (858 x 256 image) and others use up to 5.5khz frequencies (858 x 128 image). In general the networks which use up to 5.5khz frequencies perform a little bit better. 
+Some networks use up to 11khz frequencies (858 x 256 image) and others use up to 5.5khz frequencies (858 x 128 image). In general the networks which use up to 5.5khz frequencies perform a little bit better (probably because the higher frequencies do not contain much useful information and just make overfitting easier). 
 
 The output layer of all networks is a fully connected softmax layer with 176 units.
 
@@ -87,7 +87,7 @@ Here is the detailed description of the best network of this set:  [tc_net_mod](
 During the training we accidentally discovered a [bug in Theano](https://github.com/Theano/Theano/issues/4534), which was quickly fixed by Theano developers.
 
 
-#### Recurrent neural networks (RNN)
+### Recurrent neural networks (RNN)
 
 The spectrogram can be viewed as a sequence of column vectors that consist of 256 (or 128, if only <5.5KHz frequencies are used) numbers. We apply [recurrent networks](https://en.wikipedia.org/wiki/Recurrent_neural_network) with 500 [GRU cells](https://arxiv.org/abs/1412.3555) in each layer on these sequences. 
 
@@ -103,7 +103,7 @@ The second layer of GRU cells improved the performance. Cropping out frequencies
 
 Both RNNs and CNNs were trained using [adadelta](http://lasagne.readthedocs.io/en/latest/modules/updates.html#lasagne.updates.adadelta) for a few epochs, then by [SGD with momentum](http://lasagne.readthedocs.io/en/latest/modules/updates.html#lasagne.updates.momentum) (0.003 or 0.0003) until overfitting. If SGD with momentum is applied from the very beginning, the convergence is very slow. Adadelta converges faster but usually doesn't reach high validation accuracy.
 
-#### Combination of CNN and RNN
+### Combination of CNN and RNN
 
 The general architecture of these combinations is a convolutional feature extractor applied on the input, then some recurrent network on top of the CNN's output, then an optional fully connected layer on RNN's output and finally a softmax layer.
 
@@ -138,7 +138,7 @@ These networks were trained using SGD with momentum only. The learning rate was 
 
 # Ensembling
 
-The best single model had 99.24% accuracy on the validation set. We had 33 predictions by all these models (there were more than one predictions for some models, taken after different epochs) and we just summed up the predicted probabilities and got 99.67% accuracy. 
+The best single model had 99.24% accuracy on the validation set. We had 33 predictions by all these models (there were more than one predictions for some models, taken after different epochs) and we just summed up the predicted probabilities and got 99.67% accuracy. Other attempts of ensembling (e.g. [majority voting](http://www.scholarpedia.org/article/Ensemble_learning#Voting_based_methods), ensemble on a subset of all models) didn't give better results
 
 # Final remarks
 
