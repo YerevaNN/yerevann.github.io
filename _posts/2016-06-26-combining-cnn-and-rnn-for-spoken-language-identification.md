@@ -103,7 +103,7 @@ The second layer of GRU cells improved the performance. Cropping out frequencies
 
 Both RNNs and CNNs were trained using [adadelta](http://lasagne.readthedocs.io/en/latest/modules/updates.html#lasagne.updates.adadelta) for a few epochs, then by [SGD with momentum](http://lasagne.readthedocs.io/en/latest/modules/updates.html#lasagne.updates.momentum) (0.003 or 0.0003) until overfitting. If SGD with momentum is applied from the very beginning, the convergence is very slow. Adadelta converges faster but usually doesn't reach high validation accuracy.
 
-### Combination of CNN and RNN
+### Combinations of CNN and RNN
 
 The general architecture of these combinations is a convolutional feature extractor applied on the input, then some recurrent network on top of the CNN's output, then an optional fully connected layer on RNN's output and finally a softmax layer.
 
@@ -123,7 +123,7 @@ The latter option has more parameters, but the information from different channe
 |[tc_net_rnn](https://github.com/YerevaNN/Spoken-language-identification/blob/master/theano/networks/tc_net_rnn.py)| 92.4 | CNN consists of 3 convolutional blocks and outputs 32 channels of size 104x13. Each of these channels is fed to a separate GRU as a sequence of 104 vectors of size 13. The outputs of GRUs are combined and fed to a fully connected layer|  
 |[tc_net_rnn_nodense](https://github.com/YerevaNN/Spoken-language-identification/blob/master/theano/networks/tc_net_rnn_nodense.py)| 91.94 | Same as above, except there is no fully connected layer on top of GRUs. Outputs of GRU are fed directly to the softmax layer|  
 |[tc_net_rnn_shared](https://github.com/YerevaNN/Spoken-language-identification/blob/master/theano/networks/tc_net_rnn_shared.py)| 96.96 | Same as above, but the 32 GRUs share weights. This helped to fight overfitting|  
-|[tc_net_rnn_shared_pad](https://github.com/YerevaNN/Spoken-language-identification/blob/master/theano/networks/tc_net_rnn_shared_pad.py)| 98.11 | 4 convolutional blocks in CNN using `pad=2` instead of `ignore_broder=False` (which enabled CuDNN and the training became much faster). The output of CNN is 32 channels of size 54x8. 32 GRUs are applied (one for each channel) with shared weights and there is no fully connected layer|  
+|[tc_net_rnn_shared_pad](https://github.com/YerevaNN/Spoken-language-identification/blob/master/theano/networks/tc_net_rnn_shared_pad.py)| 98.11 | 4 convolutional blocks in CNN using `pad=2` instead of `ignore_broder=False` (which enabled CuDNN and the training became much faster). The output of CNN is a set of 32 channels of size 54x8. 32 GRUs are applied (one for each channel) with shared weights and there is no fully connected layer|  
 |[tc_net_deeprnn_shared_pad](https://github.com/YerevaNN/Spoken-language-identification/blob/master/theano/networks/tc_net_deeprnn_shared_pad.py)| 95.67 | 4 convolutional block as above, but 2-layer GRUs with shared weights are applied on CNN's outputs. Overfitting became stronger because of this second layer |  
 |[tc_net_shared_pad_augm](https://github.com/YerevaNN/Spoken-language-identification/blob/master/theano/networks/tc_net_shared_pad_augm.py)| 98.68 | Same as [tc_net_rnn_shared_pad](https://github.com/YerevaNN/Spoken-language-identification/blob/master/theano/networks/tc_net_rnn_shared_pad.py), but the network randomly crops the input and takes 9s interval. The performance became a bit better due to this |  
 |[tc_net_rnn_onernn](https://github.com/YerevaNN/Spoken-language-identification/blob/master/theano/networks/tc_net_rnn_onernn.py)| 99.2 | The outputs of a CNN with 4 convolutional blocks are grouped into a 32x54x8 3D-tensor and a single GRU runs on a sequence of 54 vectors of size 32*8 |  
@@ -138,7 +138,7 @@ These networks were trained using SGD with momentum only. The learning rate was 
 
 # Ensembling
 
-The best single model had 99.24% accuracy on the validation set. We had 33 predictions by all these models (there were more than one predictions for some models, taken after different epochs) and we just summed up the predicted probabilities and got 99.67% accuracy. Other attempts of ensembling (e.g. [majority voting](http://www.scholarpedia.org/article/Ensemble_learning#Voting_based_methods), ensemble on a subset of all models) didn't give better results
+The best single model had 99.24% accuracy on the validation set. We had 33 predictions by all these models (there were more than one predictions for some models, taken after different epochs) and we just summed up the predicted probabilities and got 99.67% accuracy. Surprisingly, our other attempts of ensembling (e.g. [majority voting](http://www.scholarpedia.org/article/Ensemble_learning#Voting_based_methods), ensemble only on some subset of all models) didn't give better results.
 
 # Final remarks
 
