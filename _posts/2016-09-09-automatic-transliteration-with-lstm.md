@@ -51,7 +51,7 @@ We are using a recurrent neural network that takes a sequence of characters (rom
 
 ### Source of the data
 
-We chose Armenian Wikipedia as the easiest available large corpus of Armenian text. The dumps are available [here](https://dumps.wikimedia.org/hywiki/). These dumps are in a very complicated XML format, but they can be parsed by the [WikiExtractor tool](https://github.com/attardi/wikiextractor). The details are in this Readme file.
+We chose Armenian Wikipedia as the easiest available large corpus of Armenian text. The dumps are available [here](https://dumps.wikimedia.org/hywiki/). These dumps are in a very complicated XML format, but they can be parsed by the [WikiExtractor tool](https://github.com/attardi/wikiextractor). The details are in the [Readme file](https://github.com/YerevaNN/translit-rnn) of the repository we released today.
 
 The disadvantage of Wiki is that it doesn't contain very diverse texts. For example, it doesn't contain any dialogs or non formal speech (while social networks are full of them). On the other hand it's very easy to parse and it's quite large (356MB). We splitted this into training (284MB), validation (36MB) and test (36MB) sets, but then we understood that the overlap between training and validation sets can be very high. Finally we decided to use some [fiction text](http://grapaharan.org/index.php/Պատը) with lots of dialogs as a validation set. 
 
@@ -75,15 +75,15 @@ Finally, Armenian language has two branches: Eastern and Western Armenian. These
 
 ### Filtering out large non-Armenian chunks
 
-Wikidumps contain some regions where there are no Armenian texts. We noticed that these regions were confusing the network. So now when generating a chunk to give to the system we drop the ones that do not contain at least 33% Armenian characters.
+Wikidumps contain some large regions where there are no Armenian characters. We noticed that these regions were confusing the network. So now when generating a chunk to give to the system we drop the ones that do not contain at least 33% Armenian characters.
 
 This is a difficult decision, as one might want the system to recognize English words in the text and leave them without transliteration. For example, the word `You Tube` should not be transliterated to Armenian. We hope that such small cases of English words/names will remain in the training set.
 
 ## Network architecture
 
-Our search for a good network architecture started from [Lasagne implementation](https://github.com/Lasagne/Recipes/blob/master/examples/lstm_text_generation.py) of [Karpathy's popular char-rnn network](https://github.com/karpathy/char-rnn). Char-rnn is a language model, it predicts the next character given the previous ones and is based on 2 layers of LSTMs going from left to right. In our case the context from the right is also important, so we replaced simple LSTMs with [bidirectional LSTMs](http://www.cs.toronto.edu/~graves/asru_2013.pdf) (introduced [here](ftp://ftp.idsia.ch/pub/juergen/nn_2005.pdf) back in 1995). 
+Our search for a good network architecture started from [Lasagne implementation](https://github.com/Lasagne/Recipes/blob/master/examples/lstm_text_generation.py) of [Karpathy's popular char-rnn network](https://github.com/karpathy/char-rnn). Char-rnn is a language model, it predicts the next character given the previous ones and is based on 2 layers of LSTMs going from left to right. The context from the right is also important in our case, so we replaced simple LSTMs with [bidirectional LSTMs](http://www.cs.toronto.edu/~graves/asru_2013.pdf) (introduced [here](ftp://ftp.idsia.ch/pub/juergen/nn_2005.pdf) back in 1995). 
 
-We have also added a shortcut connection from the input to the output of the 2nd biLSTM layer. This helps to learn the "easy" transliteration rules on this short way and leave LSTMs for the complex stuff. 
+We have also added a shortcut connection from the input to the output of the 2nd biLSTM layer. This should help to learn the "easy" transliteration rules on this short way and leave LSTMs for the complex stuff. 
 
 Just like char-rnn, our network works on character level data and has no access to dictionaries.
 
@@ -95,13 +95,13 @@ All symbols are encoded as one-hot vectors and are passed to the network. In our
 
 ### Aligning
 
-After some experiments we noticed that LSTMs are really struggling when the characters are not aligned in inputs and outputs. As one Armenian character can be replaced by 2 or 3 Latin characters, the input and output sequences usually have different lengths, and the network has to "remember" by how many characters the romanized sequence is ahead of the Armenian sequence in order to print the next character in the correct place. This turned to be extremely difficult, and we decided to explicitly align the Armenian sequence by adding some placeholder symbols after those characters that are romanized to multi-character Latin.
+After some experiments we noticed that LSTMs are really struggling when the characters are not aligned in inputs and outputs. As one Armenian character can be replaced by 2 or 3 Latin characters, the input and output sequences usually have different lengths, and the network has to "remember" by how many characters the romanized sequence is ahead of the Armenian sequence in order to print the next character in the correct place. This turned to be extremely difficult, and we decided to explicitly align the Armenian sequence by [adding some placeholder symbols](https://github.com/YerevaNN/translit-rnn/blob/master/utils.py#L227-L232) after those characters that are romanized to multi-character Latin.
 
 | ![Character level alignment of Armenian text with the romanization](http://yerevann.github.io/public/2016-09-09/aligning.png) | 
 | --- |
 | Character level alignment of Armenian text with the romanization |
 
-Also there is one exceptional case in Armenian: the Latin letter 'u' should be transliterated to 2 Armenian symbols: `ու`. This is another source of misalignment. We explicitly replace all `ու` pairs with some placeholder symbol to avoid the problem.
+Also there is one exceptional case in Armenian: the Latin letter 'u' should be transliterated to 2 Armenian symbols: `ու`. This is another source of misalignment. We [explicitly replace](https://github.com/YerevaNN/translit-rnn/blob/master/utils.py#L160-L166) all `ու` pairs with some placeholder symbol to avoid the problem.
 
 ### Bidirectional LSTM with residual-like connections
 
@@ -112,9 +112,9 @@ LSTM network expects a sequence of vectors at its input. In our case it is a seq
 | Network architecture. Green boxes encapsulate all the magic inside LSTM. Grey trapezoids denote dense connections. Dotted line is an identity connection without trainable parameters. |
 
 
-These 30 one-hot vectors are passed to the first layer of bidirectional  LSTM. Basically it is a combination of two separate LSTMs, first one is passing over the sequence from left to right, and the other is passing from right to left. We use 1024 neurons in all LSTMs. Both LSTMs output some 1024-dimensional vectors at every position. These outputs are concatenated into a 2048 dimensional vector and are passed through another dense layer that outputs a 1024 dimensional vector. That's what we call one layer of a bidirectional LSTM. The number of such layers is another hyperparameter (`--depth`). Our experiments showed that 2 layers learn better than 1 or 3 layers. 
+These 30 one-hot vectors are passed to the first layer of bidirectional  LSTM. Basically it is a combination of two separate LSTMs, first one is passing over the sequence from left to right, and the other is passing from right to left. We use 1024 neurons in all LSTMs. Both LSTMs output some 1024-dimensional vectors at every position. These outputs are [concatenated](https://github.com/YerevaNN/translit-rnn/blob/master/utils.py#L283) into a 2048 dimensional vector and are passed through another dense layer that outputs a 1024 dimensional vector. That's what we call one layer of a bidirectional LSTM. The number of such layers is another hyperparameter (`--depth`). Our experiments showed that 2 layers learn better than 1 or 3 layers. 
 
-At every position the output of the last bidirectional LSTM is concatenated with the one-hot vector of the input forming a 1096 dimensional vector. Then it is densely connected to the final layer with 152 neurons on which softmax is applied. The total loss is the mean of the cross entropy losses of the current sequence.
+At every position the output of the last bidirectional LSTM is [concatenated with the one-hot vector of the input](https://github.com/YerevaNN/translit-rnn/blob/master/utils.py#L292) forming a 1096 dimensional vector. Then it is densely connected to the final layer with 152 neurons on which softmax is applied. The total loss is the mean of the cross entropy losses of the current sequence.
 
 The concatenation of the input vector to the output of the LSTM is similar to the residual connections introduced in [deep residual networks](https://arxiv.org/abs/1512.03385). Some of the transliteration rules are very easy and deterministic, so they can be learned by a diagonal-like matrix between input and output vectors. For more complex rules the output of LSTMs will become important. One important difference from deep residual networks is that instead of adding the input vector to the output of LSTMs, we just concatenate them. Also, our residual connections do not help fighting the vanishing/exploding gradient problem, we have LSTM for that.
 
@@ -124,13 +124,13 @@ We have trained this network using `adagrad` algorithm with gradient clipping (l
 
     python -u train.py --hdim 1024 --depth 2 --seq_len 30 --batch_size 350 &> log
 
-The model we release for Armenian was trained for 42 hours. Here are the plots of training and validation sets:
+The model we got for Armenian was trained for 42 hours. Here are the plots of training and validation sets:
 
 | ![Loss functions](http://yerevann.github.io/public/2016-09-09/loss.png) | 
 | --- |
 | Loss functions. Green is the validation loss, blue is the training loss. |
 
-Loss quickly drops in the first quarter of the first epochs, then continues to slowly decrease. We stopped after 5.1 epochs. The [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between the original Armenian text and the output of the network on the validation test is 405 (the length is 36694). For example, hayeren.am's converter output has more than 2500 edit distance. 
+The loss quickly drops in the first quarter of the first epoch, then continues to slowly decrease. We stopped after 5.1 epochs. The [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between the original Armenian text and the output of the network on the validation test is 405 (the length is 36694). For example, hayeren.am's converter output has more than 2500 edit distance. 
 
 Here are some results.
 
