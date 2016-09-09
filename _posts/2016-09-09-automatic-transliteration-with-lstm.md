@@ -9,7 +9,7 @@ tags:
 
 By [Tigran Galstyan](https://github.com/TigranGalstyan), [Hrayr Harutyunyan](https://github.com/Harhro94) and [Hrant Khachatrian](https://github.com/Hrant-Khachatrian). 
 
-Many languages have their own non-Latin alphabets but the web is full of content in those languages written in Latin letters, which makes it inaccessible to various NLP tools (e.g. automatic translation). Transliteration is the process of converting the romanized text back to the original writing system. In theory every language has a strict set of romanization rules, but in practice people do not follow the rules and most of the romanized content is hard to transliterate using rule based algorithms. We believe this problem is solvable using the state of the art NLP tools, and we demonstrate a high quality solution for Armenian based on recurrent neural networks. We invite everyone to adapt our system for more languages. 
+Many languages have their own non-Latin alphabets but the web is full of content in those languages written in Latin letters, which makes it inaccessible to various NLP tools (e.g. automatic translation). Transliteration is the process of converting the romanized text back to the original writing system. In theory every language has a strict set of romanization rules, but in practice people do not follow the rules and most of the romanized content is hard to transliterate using rule based algorithms. We believe this problem is solvable using the state of the art NLP tools, and we demonstrate a high quality solution for Armenian based on recurrent neural networks. We invite everyone to [adapt our system](https://github.com/YerevaNN/translit-rnn) for more languages. 
 
 <!--more-->
 
