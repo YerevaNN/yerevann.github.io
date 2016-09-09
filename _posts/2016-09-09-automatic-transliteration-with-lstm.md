@@ -1,4 +1,11 @@
-# Automatic transliteration using LSTM
+---
+layout: post
+title: Automatic transliteration with LSTM
+tags:
+- Recurrent neural networks
+- Natural language processing
+- Armenian
+---
 
 By [Tigran Galstyan](https://github.com/TigranGalstyan), [Hrayr Harutyunyan](https://github.com/Harhro94) and [Hrant Khachatrian](https://github.com/Hrant-Khachatrian). 
 
