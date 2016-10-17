@@ -9,8 +9,7 @@ Today we have officially registered YerevaNN scientific educational foundation, 
 
 <!--more-->
 
-| ![YerevaNN](http://yerevann.github.io/public/2016-10-17/cover.jpg) |
-| --- |
+![YerevaNN](http://yerevann.github.io/public/2016-10-17/cover.jpg)
  
 The core project of the foundation is to support an AI research lab based in Yerevan, Armenia. Inspired by [OpenAI](https://openai.com/about/), the lab focuses on non-commercial machine learning research and is committed to publish all obtained results and release all the code on GitHub. The three initial members of YerevaNN lab, Tigran Galstyan, Karen Hambardzumyan and Hrayr Harutyunyan, currently work on projects ranging from generative models to natural language processing.
 
