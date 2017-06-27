@@ -38,7 +38,7 @@ Our network consists of two LSTMs (228 cells) going forward and backward on the 
 ## Analyzing the neurons
 
 We tried to answer the following questions: 
-* How does the network handle interesting cases with several possible outcomes (e.g. 'r' => 'ր' vs 'ռ' etc.)?
+* How does the network handle interesting cases with several possible outcomes (e.g. `r` => `ր` vs `ռ` etc.)?
 * What are the problems particular neurons are helping to solve?
 
 ### How does "t" become "ծ"?
@@ -48,7 +48,7 @@ For example we are interested how `t` becomes `ծ` (we know `t` can become `տ`,
 
 For every neuron, we draw the histograms of its activations in cases when the correct output is `ծ`, and when the correct output is *not* `ծ`. For most of the neurons these two histograms are pretty similar, but there are cases like this:
 
-Input = 't', Output = 'ծ'                                                                        |  Input = 't',  Output != 'ծ'
+Input = `t`, Output = `ծ`                                                                        |  Input = `t`,  Output != `ծ`
 :-------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------:
 ![](http://yerevann.github.io/public/2017-06-27/ts.png)  |  ![](http://yerevann.github.io/public/2017-06-27/chts.png)
 
@@ -68,7 +68,7 @@ We did the same analysis for the neurons and gates inside the LSTMs. The results
 
 In the cases when `s` should be transliterated into `_` (the placeholder), the useful information is more likely to come from the LSTM that goes forward, as `s` becomes `_` mainly in case of `ts` => `ծ_`. We see that on the next plot:
 
-![s=>_](http://yerevann.github.io/public/2017-06-27/s-_.png)
+![s=>placeholder](http://yerevann.github.io/public/2017-06-27/s-_.png)
 
 ### What did this neuron learn?
 
@@ -87,7 +87,7 @@ So this neuron is most helpful when predicting `_` from `s` (as we already knew)
 
 We visualize Hellinger distances of the histograms of neuron activations when the input is `h` and the output is `_`, and see that the neuron #70 is among the top 10 neurons of the left-to-right LSTM for the `h`=>`_` pair.
 
-![h=>_](http://yerevann.github.io/public/2017-06-27/h-_.png)
+![h=>placeholder](http://yerevann.github.io/public/2017-06-27/h-_.png)
 
 
 
@@ -109,7 +109,7 @@ We can see that Cell #6 is active on `tyun`s and is not active on the other part
 
 We know that `t` in the suffix `tyun` should always become `թ` in Armenian, so we thought that if a neuron is active on `tyun`s, it may help in determining whether the Latin `t` should be transliterated as `թ` or `տ`. So we visualized the most important neurons for the pair `t` => `թ`. 
 
-![t->'թ'](http://yerevann.github.io/public/2017-06-27/t-թ.png)
+![t->թ](http://yerevann.github.io/public/2017-06-27/t-թ.png)
 
 Indeed, Cell #147 in the forward LSTM is among the top 10.
 
