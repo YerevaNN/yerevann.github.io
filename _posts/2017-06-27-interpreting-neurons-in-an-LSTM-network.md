@@ -62,6 +62,8 @@ The neurons at the top of the image are from the output layer, the neurons below
 
 It is obvious that, in case of `t` => `ծ`, all top 12 neurons of the hidden layer pass positive signals to `ծ` and `ց` (another Armenian character that is often romanized as `ts`), and pass negative signals to `տ`, `թ` and others. 
 
+![t=>ծ - concat layer](http://yerevann.github.io/public/2017-06-27/t-ծ-concat.png)
+
 We can also see that the outputs of the right-to-left LSTM are darker, which implies that these neurons "have more knowledge" about whether to predict `ծ`. On the other hand, the lines between those neurons and the hidden layer are thicker, which means that they have more contribution in activating the top 12 neurons in the hidden layer. This is a very natural result, because we know that `t` usually becomes `ծ` when the *next* symbol is `s`, and only right-to-left LSTM is aware of the next character. 
 
 We did the same analysis for the neurons and gates inside the LSTMs. The results are visualized as six rows of neurons at the bottom of the image. In particular, it is interesting to note that the most "confident" neurons are the so called *cell inputs*. Recall that cell inputs, as well as all the gates, depend on the input at the current step and the hidden state of the previous step (which is the hidden state at the *next* character as we talk about the right-to-left LSTM), so all of them are "aware" of the next `s`, but for some reason cell inputs are more confident than others.
