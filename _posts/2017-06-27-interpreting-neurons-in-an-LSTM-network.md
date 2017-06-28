@@ -12,7 +12,7 @@ By [Tigran Galstyan](https://github.com/TigranGalstyan) and
    [Hrant Khachatrian](https://github.com/Hrant-Khachatrian).
 
 A few months ago we showed how well an LSTM network can perform [
-transliteration](http://yerevann.github.io/2016/09/09/automatic-transliteration-with-lstm/). Transliteration is a relatively easy task for humans, so it is interesting to see whether the network actually capture the patterns people normally use to transliterate text. In this post we'll try to understand what individual neurons of the network actually learn.
+transliteration](http://yerevann.github.io/2016/09/09/automatic-transliteration-with-lstm/). Transliteration is a relatively easy task for humans, so it is interesting to see whether the network actually captures the patterns people normally use to transliterate text. In this post we'll try to understand what individual neurons of the network actually learn.
 
 <!--more-->
 
