@@ -40,13 +40,13 @@ So a growing share of user-generated text content is in these "Latinized" or "ro
 What makes this problem non-trivial?
 
 1. Different users romanize in different ways, as we saw above. 
-For example, 'v' or 'w' could be Armenian 'վ'.
+For example, `v` or `w` could be Armenian `վ`.
 
 2. Multiple letters can be romanized to the same Latin letter.
-For example, `r` could be Armenian `ր` or `ռ` .
+For example, `r` could be Armenian `ր` or `ռ`.
 
 3. A single letter can be romanized to a combination of multiple Latin letters.
-For example, `ch` could be Cyrillic `ч` or Armenian `չ`, but `c` and `h` by themselves could be different letters.
+For example, `ch` could be Cyrillic `ч` or Armenian `չ`, but `c` and `h` by themselves are for other letters.
 
 4. English words and translingual Latin tokens like URLs occur in non-Latin text.
 For example, the letters in `youtube.com` or `MSFT` should not be changed.
