@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Interpreting neurons in an LSTM network
+title: LSTM interpretability: What do neurons actually learn?
 tags:
 - Recurrent neural networks
 - Natural language processing
@@ -11,8 +11,12 @@ tags:
 By [Tigran Galstyan](https://github.com/TigranGalstyan) and
    [Hrant Khachatrian](https://github.com/Hrant-Khachatrian).
 
-A few months ago we showed how well an LSTM network can perform [
-transliteration](http://yerevann.github.io/2016/09/09/automatic-transliteration-with-lstm/). Transliteration is a relatively easy task for humans, so it is interesting to see whether the network actually captures the patterns people normally use to transliterate text. In this post we'll try to understand what individual neurons of the network actually learn.
+A few months ago, we showed how effectively an LSTM network can perform text [
+transliteration](http://yerevann.github.io/2016/09/09/automatic-transliteration-with-lstm/).
+
+For humans, transliteration is a relatively easy and interpretable task, so it's a good task for interpreting what the network is doing, and whether it is similar to how humans approach the same task.
+
+In this post we'll try to understand what individual neurons of the network actually learn and how they make decisions.
 
 <!--more-->
 
@@ -23,9 +27,31 @@ transliteration](http://yerevann.github.io/2016/09/09/automatic-transliteration-
 
 ## Transliteration
 
-Transliteration is a huge problem for many languages with non-Latin alphabets (including Armenian), as people tend to use Latin letters instead of their native alphabets, and the web gets full of content that is not readable for most NLP tools.
+About half of the billions of internet users speak languages written in non-Latin alphabets, like Russian, Arabic, Chinese, Greek and Armenian.  Very often, they haphazardly use the Latin alphabet to write those languages.
 
-The first difficulty in transliteration is that different people romanize the text using different rules. The second problem is that usually multiple letters are mapped into the same Latin letter. For example, Latin character `r` can correspond to both `ր` and `ռ` in Armenian, Latin `t` can correspond to `թ`, `տ`, `ծ` etc. But humans can easily figure out the correct correspondence depending on the context. The third problem is the usage of English words in Armenian text. For these cases the ideal solution would be to leave English words untouched. We have shown that LSTMs can learn to handle all these issues at least for Armenian. For example, our model transliterated `es sirum em Deep Learning` into `ես սիրում եմ Deep Learning` and not `ես սիրում եմ Դեեփ Լէարնինգ`.
+`Привет`: `Privet`, `Privyet`, `Priwjet`, ...
+`كيف حالك`: `kayf halk`, `keyf 7alek`, ...
+`Բարև Ձեզ`: `Barev Dzez`, `Barew Dzez`, ...
+
+So a growing share of user-generated text content is in these "Latinized" or "romanized" formats that are difficult to parse, search or even identify.  Transliteration is the task of automatically converting this content into the native canonical format.
+
+`Tenc aveli sirun e.`: `Տենց ավելի սիրուն է:`
+
+What makes this problem non-trivial?
+
+1. Different users romanize in different ways, as we saw above. 
+For example, 'v' or 'w' could be Armenian 'վ'.
+
+2. Multiple letters can be romanized to the same Latin letter.
+For example, `r` could be Armenian `ր` or `ռ` .
+
+3. A single letter can be romanized to a combination of multiple Latin letters.
+For example, `ch` could be Cyrillic `ч` or Armenian `չ`, but `c` and `h` by themselves could be different letters.
+
+4. English words and translingual Latin tokens like URLs occur in non-Latin text.
+For example, the letters in `youtube.com` or `MSFT` should not be changed.
+
+Humans are great at resolving these ambiguities.  We showed that LSTMs can also learn to resolve all these ambiguities, at least for Armenian. For example, our model correctly transliterated `es sirum em Deep Learning` into `ես սիրում եմ Deep Learning` and not `ես սիրում եմ Դեեփ Լէարնինգ`.
 
 ## Network architecture
 
