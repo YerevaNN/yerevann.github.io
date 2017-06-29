@@ -1,6 +1,6 @@
 ---
 layout: post
-title: LSTM interpretability: What do neurons actually learn?
+title: Interpreting neurons in an LSTM network
 tags:
 - Recurrent neural networks
 - Natural language processing
@@ -16,7 +16,7 @@ transliteration](http://yerevann.github.io/2016/09/09/automatic-transliteration-
 
 For humans, transliteration is a relatively easy and interpretable task, so it's a good task for interpreting what the network is doing, and whether it is similar to how humans approach the same task.
 
-In this post we'll try to understand what individual neurons of the network actually learn and how they make decisions.
+In this post we'll try to understand: What do individual neurons of the network actually learn?  How are they used to make decisions?
 
 <!--more-->
 
