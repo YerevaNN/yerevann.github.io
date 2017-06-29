@@ -35,7 +35,7 @@ About half of the billions of internet users speak languages written in non-Lati
 
 So a growing share of user-generated text content is in these "Latinized" or "romanized" formats that are difficult to parse, search or even identify.  Transliteration is the task of automatically converting this content into the native canonical format.
 
-`Tenc aveli sirun e.`: `Տենց ավելի սիրուն է:`
+`Aydpes aveli sirun e.`: `Այդպես ավելի սիրուն է:`
 
 What makes this problem non-trivial?
 
@@ -146,3 +146,5 @@ Indeed, Cell #147 in the forward LSTM is among the top 10.
 Interpretability of neural networks remains an important challenge in machine learning. CNNs and LSTMs perform well for many learning tasks, but there are very few tools to understand the inner workings of these systems. Transliteration is a pretty good problem for analyzing the impact of particular neurons.
 
 Our experiments showed that too many neurons are involved in the "decision making" even for the simplest cases, but it is possible to identify a subset of neurons that have more influence than the rest. On the other hand, most neurons are involved in multiple decision making processes depending on the context. This is expected, since nothing in the loss functions we use when training neural nets forces the neurons to be independent and interpretable. Recently, there have been [some attempts](https://arxiv.org/abs/1606.03657) to apply information-theoretic regularization terms in order to obtain more interpretability. It would be interesting to test those ideas in the context of transliteration.
+
+We would like to thank Adam Mathias Bittlingmayer and Zara Alaverdyan for  helpful comments and discussions.
