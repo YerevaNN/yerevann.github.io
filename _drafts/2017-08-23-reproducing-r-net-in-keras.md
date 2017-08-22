@@ -130,16 +130,16 @@ In QuestionAttnGRU first we combine three things:
 2. matrix representation of the question (u<sup>Q</sup>)
 3. vector representation of the passage (u<sup>P</sup><sub>t</sub>) at the t-th word.
 
-We compute the dot product of each input with the corresponding weights, then sum-up all together after broadcasting them into the same shape. The outputs of dot(u<sup>P</sup><sub>t</sub>, W<sup>P</sup><sub>u</sub>) and dot(v<sup>P</sup><sub>t-1</sub>, W<sup>P</sup><sub>v</sub>) are vectors, while the output of dot(u<sup>Q</sup>, W<sup>Q</sup><sub>u</sub>) is a matrix, therefore we broadcast (repeat several times) the vectors to match the shape of the matrix and then compute the sum of three matrices. Then we apply tanh activation on the result. The output of this operation is then propagated further and multiplied (dot product) by weights ``V``, after which ``softmax`` activation is applied. The output of the ``softmax`` is a vector of nonnegative numbers that represent the "importance" of each word in the question. This is usually called an _attention vector_. When computing the dot product of u<sup>Q</sup> (matrix representation of the question) and the attention vector, we obtain a single vector for the entire question which is a weighted average of question word vectors (weighted by the attention scores). The intuition behind this part is that we get a representation of the parts of the question that are relevant to the current word of the passage. This representation, denoted by c<sub>t</sub>, depends on the current word, the whole question and the previous state of the recurrent cell.
+We compute the dot product of each input with the corresponding weights, then sum-up all together after broadcasting them into the same shape. The outputs of dot(u<sup>P</sup><sub>t</sub>, W<sup>P</sup><sub>u</sub>) and dot(v<sup>P</sup><sub>t-1</sub>, W<sup>P</sup><sub>v</sub>) are vectors, while the output of dot(u<sup>Q</sup>, W<sup>Q</sup><sub>u</sub>) is a matrix, therefore we broadcast (repeat several times) the vectors to match the shape of the matrix and then compute the sum of three matrices. Then we apply tanh activation on the result. The output of this operation is then multiplied (dot product) by a weight vector ``V``, after which ``softmax`` activation is applied. The output of the ``softmax`` is a vector of non-negative numbers that represent the "importance" of each word in the question. This is usually called an _attention vector_. When computing the dot product of u<sup>Q</sup> (matrix representation of the question) and the attention vector, we obtain a single vector for the entire question which is a weighted average of question word vectors (weighted by the attention scores). The intuition behind this part is that we get a representation of the parts of the question that are relevant to the current word of the passage. This representation, denoted by c<sub>t</sub>, depends on the current word, the whole question and the previous state of the recurrent cell (formula 4 on page 3 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)).
 
 These ideas seem to come from a paper by [Rocktäschel et al.](https://arxiv.org/abs/1509.06664) from Deepmind. The authors suggested to pass this c<sub>t</sub> vector as an input to the GRU cell. [Wang and Jiang](https://arxiv.org/abs/1512.08849) from Singapore Management University argued that passing c<sub>t</sub> is not enough, because we are losing information from the "original" input u<sup>P</sup><sub>t</sub>. So they suggested to concatenate c<sub>t</sub> and u<sup>P</sup><sub>t</sub> before passing it to the GRU cell.
  
-The authors of R-Net did one more step. They have applied one more gate to the concatenated vector \[c<sub>t</sub>, u<sup>P</sup><sub>t</sub>\]. The gate is simply a dot product of some new weight matrix W<sub>g</sub> and the concatenated vector, passed through a sigmoid activation function. The output of the gate is a vector of non-negative numbers, which is then (element-wise) multiplied by the original concatenated vector (see Formula 6 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The result of this multiplication is finally passed to the GRU cell as an input.
+The authors of R-Net did one more step. They applied an additional gate to the concatenated vector \[c<sub>t</sub>, u<sup>P</sup><sub>t</sub>\]. The gate is simply a dot product of some new weight matrix W<sub>g</sub> and the concatenated vector, passed through a sigmoid activation function. The output of the gate is a vector of non-negative numbers, which is then (element-wise) multiplied by the original concatenated vector (see formula 6 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The result of this multiplication is finally passed to the GRU cell as an input.
 
 
 ## 3. [Apply self-matching attention on the passage to get its final representation](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SelfAttnGRU.py)
 
-Next we add self attention on the passage itself.
+Next, the authors suggest to add a self attention mechanism on the passage itself.
 
 [Code on GitHub](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L105)
 ```python
@@ -149,22 +149,23 @@ hP = Bidirectional(SelfAttnGRU( units=H,
 hP = Dropout(rate=dropout_rate, name='hP') (hP)
 ```
 
-The output of the previous step (Question attention) is v<sup>P</sup>. It represents the encoding of the passage while taking into account the question. v<sup>P</sup> is passed as an input to self-matching attention module (top input, left input). Self-matching attention module is responsible for finding the parts of the passage to which it should pay attention to without forgetting the question.
+The output of the previous step (Question attention) is denoted by v<sup>P</sup>. It represents the encoding of the passage while taking into account the question. v<sup>P</sup> is passed as an input to the self-matching attention module (top input, left input). The authors argue that the vectors v<sup>P</sup><sub>t</sub> have very limited information about the context. Self-matching attention module attempts to augment the passage vectors by information from other relevant parts of the passage.
 
-We denote the output of self-matching GRU cell at time t by h<sup>P</sup><sub>t</sub>.
+The output of self-matching GRU cell at time `t` is denoted by h<sup>P</sup><sub>t</sub>.
+
+**TODO: the image is wrong, the upper v^P should be v^P_t**
 
 ![SelfAttnGRU](../public/2017-08-22/SelfAttnGRU.png "Self-matching Attention GRU")
 
-In this module first we compute dot products of weights WPPu with v<sup>P</sup> and W
-<sup>P</sup><sub>v</sub>  with v<sup>P</sup>, then adding them up and applying ``tanh`` activation. Next the result is multiplied with weight-vector ``V`` applying a ``softmax`` activation, which is then multiplied by the input vector v<sup>P</sup> to obtain the next attraction vector. The attraction vector is then concatenated with v<sup>P</sup> itself. We multiply the resulting vector by weight Wg and apply sigmoid activation, after which it’s multiplied by the concatenated vector and passed as the next input to the GRU cell.
+The implementation is very similar to the previous module. We compute dot products of weights W<sup>PP</sup><sub>u</sub> with the current word vector v<sup>P</sup><sub>t</sub>, and W<sup>P</sup><sub>v</sub> with the entire v<sup>P</sup> matrix, then add them up and apply ``tanh`` activation. Next, the result is multiplied with a weight-vector ``V`` and passed through ``softmax`` activation, which produces an attention vector. The dot product of the attention vector and v<sup>P</sup> matrix, again denoted by c<sub>t</sub>, is the weighted average of all word vectors of the passage that are relevant to the current word. c<sub>t</sub> is then concatenated with v<sup>P</sup><sub>t</sub> itself. The concatenated vector is passed through a gate and is given to GRU cell as an input.
 
-A natural question might arise: "Why are we using self-matching attention on the passage when we already had question aware encoding of the passage?". The logic behind this module is that having only the passage encoding is usually not enough and contains little information about the context itself. So we need to concentrate more on the passage to obtain its logical meaning. Moreover, there exists some sort of lexical or syntactic divergence between the question and passage in the majority of SQuAD dataset (Rajpurkar et al., 2016). Thus we process the question aware representation of the passage to obtain more information about the passage itself.
+The authors consider this step as their main contribution to the architecture.
 
 ## 4. [Predict the interval which contains the answer of a question](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/PointerGRU.py)
 
 [https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py)
 
-As we already have the question aware representation of the passage and delved deeper in understanding the contextual meaning of the passage, let’s move on to predicting the interval of the passage which contains the desired answer.
+Finally we're ready to predict the interval of the passage which contains the answer of the question.
 
 To accomplish this task we use QuestionPooling layer followed by a PointerGRU (pointer networks (Vinyals et al., 2015)).
 
