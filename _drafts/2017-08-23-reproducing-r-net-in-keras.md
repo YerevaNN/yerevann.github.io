@@ -18,9 +18,9 @@ In this post we describe our attempt to re-implement a neural architecture for a
 * TOC
 {:toc}
 
-### Problem statement
+## Problem statement
 
-Given passage and question, our task is to predict an answer to the question based on information found in the passage. The SQuAD dataset further constrains the answer to be a continuous sub-span of the provided passage. Answer often includes non-entities and can be much longer phrases. That’s why the neural network needs to understand both the passage and the question in order to be able to give a valid answer.
+Given a passage and a question, our task is to predict an answer to the question based on the information found in the passage. The SQuAD dataset further constrains the answer to be a continuous sub-span of the provided passage. Answers usually include non-entities and can be long phrases. The neural network needs to "understand"" both the passage and the question in order to be able to give a valid answer.
 
 ### Example from the dataset:
 
@@ -30,18 +30,18 @@ Given passage and question, our task is to predict an answer to the question bas
 **Answer:** Panic of 1901
 
 
-## Architecture & Code:
+## Architecture and Code:
 
-The [architecture](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py) of R-Net network takes the question and the passage as an input and outputs an interval on the passage that contains the answer. The process consists of several steps:
-1. Encode question and passage
+The [architecture](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py) of R-Net network takes the question and the passage as inputs and outputs an interval on the passage that contains the answer. The process consists of several steps:
+1. Encode the question and the passage
 2. Obtain question aware representation for the passage
 3. Apply self-matching attention on the passage to get its final representation.
-4. Predict the interval which contains the answer of a question.
+4. Predict the interval which contains the answer of the question.
 
-Each of the steps is implemented as some sort of recurrent neural network. The model is trained end-to-end.
+Each of these steps is implemented as some sort of recurrent neural network. The model is trained end-to-end.
 
 
-### What is a recurrent neural network and how we define it.
+### Visualizing Complex Recurrent Networks
 
 Recurrent NN h(t) = A(xt, ht) = schema
 
@@ -53,19 +53,15 @@ Output = all h(t) outputs or only the last one
 
 We are using [GRU](https://arxiv.org/abs/1412.3555) cells (Gated Recurrent Unit) for all RNNs. The authors claim that they perform similar to LSTM cells but are computationally cheaper.
 
-In all the further charts we’ll try to explain and visualize the modules like the GRU cell presented above (as one cell including all its operations).
+Most of the modules of R-Net are implemented as recurrent networks with very complex cells. We visualize these cells in colorful charts. Here is a chart that corresponds to the original GRU cell:
 
-Legend: In the following charts white rectangles represent operations like dot product, sum, etc. Yellow rectangles are activations like tanh, softmax or sigmoid. Red circles are the weights of the network.
+TODO: chart for GRU
 
-In R-Net architecture there might be a necessity to include parameters that are neither part of a GRU state nor part of an input at time T. I.e. global parameters that are consistent throughout all the steps. We’ll call this global parameters non-sequences.
+White rectangles represent operations on tensors ()dot product, sum, etc.). Yellow rectangles are activations (tanh, softmax or sigmoid). Red circles are the weights of the network.
 
-To make it easier to create GRU cells with additional features and operations we’ve created an utility class called WrappedGRU which is a base class for all GRU modules. The most important thing that WrappedGRU has to support is operations with non-sequences (getting global parameters as an input). Also WrappedGRU needs to support sharing weights between modules, therefore it has to be able to get SharedWeights as an input. Keras doesn’t support weight sharing, but instead it supports layer sharing and we use SharedWeights layer to solve this problem (SharedWeights is a layer that has no inputs and returns tensor of weights).
+Some parts of R-Net architecture require to use tensors that are neither part of a GRU state nor part of an input at time `t`. These are "global" variables that are used in all timesteps. Following [Theano's terminology](http://deeplearning.net/software/theano/library/scan.html), we call these global variables _non-sequences_.
 
-
-**[Implementation of WrappedGRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/WrappedGRU.py)**
-
-**[Implementation of SharedWeights](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SharedWeight.py)**
-
+To make it easier to create GRU cells with additional features and operations we’ve created a [utility class called **WrappedGRU**](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/WrappedGRU.py) which is a base class for all GRU modules. The most important feature is that WrappedGRU supports operations with non-sequences (getting global parameters as an input). Also WrappedGRU needs to support sharing weights between modules, therefore it has to be able to get SharedWeight as an input. Keras doesn’t support weight sharing __TODO: link!!__, but instead it supports layer sharing and we use [SharedWeight layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SharedWeight.py) to solve this problem (SharedWeight is a layer that has no inputs and returns tensor of weights).
 
 
 ## 1. [Question and Passage Encoder](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/preprocessing.py)
