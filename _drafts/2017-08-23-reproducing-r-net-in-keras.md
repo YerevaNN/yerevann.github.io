@@ -66,9 +66,9 @@ To make it easier to create GRU cells with additional features and operations we
 
 ## 1. [Question and Passage Encoder](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/preprocessing.py)
 
-This step consists of two parts: preprocessing and text encoding. The preprocessing is done in a separate process and is not part of the neural networks. First we preprocess the data by splitting it into parts then we convert all the words to corresponding vectors. Word-vectors are generated with gensim’s ``word2vec`` operation.
+This step consists of two parts: preprocessing and text encoding. The preprocessing is done in a separate process and is not part of the neural network. First we preprocess the data by splitting it into parts, and then we convert all the words to corresponding vectors. Word-vectors are generated with gensim’s ``word2vec`` function. **TODO: link**
 
-Next steps are already part of the model. Each word is represented by a concatenation of two vectors: its GloVe vector and another vector that holds character level information. To obtain character level embeddings we use an Embedding layer followed by a Bidirectional GRU cell wrapped inside a TimeDistributed layer. Basically, each character is embedded in H dimensional space, and a BiGRU runs over those embeddings to produce a vector for the word. The process is repeated for all the words using TimeDistributed layer.
+The next steps are already part of the model. Each word is represented by a concatenation of two vectors: its GloVe vector and another vector that holds character level information. To obtain character level embeddings we use an Embedding layer followed by a Bidirectional GRU cell wrapped inside a TimeDistributed layer. Basically, each character is embedded in `H` dimensional space, and a BiGRU runs over those embeddings to produce a vector for the word. The process is repeated for all the words using TimeDistributed layer.
 
 [Code on GitHub](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L62)
 ```python
@@ -79,9 +79,9 @@ TimeDistributed(Sequential([
 			     ]))
 ```
 
-Following the notation of the paper, we denote the vector representation of the question by u<sup>Q</sup> and the representation of the passage by u<sup>P</sup> (Q corresponds to question and P corresponds to passage).
+Following the notation of the paper, we denote the vector representation of the question by u<sup>Q</sup> and the representation of the passage by u<sup>P</sup> (Q corresponds to the question and P corresponds to the passage).
 
-Having the preprocessed question ``Q`` and passage ``P`` we first apply Masking on each one and then encode each of them with 3 consecutive bidirectional GRU cells.
+Having the preprocessed question ``Q`` and the passage ``P`` we first apply Masking on each one and then encode each of them with 3 consecutive bidirectional GRU layers.
 
 [Code on GitHub](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L81)
 ```python
@@ -106,7 +106,7 @@ for i in range(3):
 uQ = Dropout(rate=dropout_rate, name='uQ') (uQ)
 ```
 
-After encoding the passage and the question we finally have their vector representation u<sup>P</sup> and u<sup>Q</sup>. Now we can delve deeper in understanding the meaning of passage having in mind the question.
+After encoding the passage and the question we finally have their vector representations u<sup>P</sup> and u<sup>Q</sup>. Now we can delve deeper in understanding the meaning of the passage having in mind the question.
 
 ## 2. [Obtain question aware representation for the passage](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionAttnGRU.py)
 
@@ -119,22 +119,23 @@ vP = QuestionAttnGRU(units=H,
 		       unroll=unroll) ([ uP, uQ, WQ_u, WP_v, WP_u, v, W_g1 ])
 ```
 
-Now let’s have a look at how QuestionAttnGRU works. It is a complex extension of a recurrent layer (extends WrappedGRU and overrides the step method by adding additional operations before passing the input to gru cell)․
+QuestionAttnGRU is a complex extension of a recurrent layer (extends WrappedGRU and overrides the step method by adding additional operations before passing the input to the GRU cell).
 
 ![QuestionAttnGRU](../public/2017-08-22/QuestionAttnGRU.png "Question Attention GRU")
 
-The vectors of question aware representation of the passage are denoted by v<sup>P</sup>. As a reminder u<sup>P</sup><sub>t</sub> is the vector representation of the passage P, u<sup>Q</sup> is the vector representation of the question Q.
+The vectors of question aware representation of the passage are denoted by v<sup>P</sup>. As a reminder u<sup>P</sup><sub>t</sub> is the vector representation of the passage P, u<sup>Q</sup> is the matrix representation of the question Q (each row corresponds to a single word).
 
 In QuestionAttnGRU first we combine three things:
 1. the previous state of the GRU (v<sup>P</sup><sub>t-1</sub>)
 2. matrix representation of the question (u<sup>Q</sup>)
-3. Vector representation of the passage (u<sup>P</sup><sub>t</sub>) at the t-th word.
+3. vector representation of the passage (u<sup>P</sup><sub>t</sub>) at the t-th word.
 
-We compute the dot product of each input with corresponding weights, then sum-up all together after broadcasting them into the same shape. The outputs of dot(u<sup>P</sup><sub>t</sub>, W<sup>P</sup><sub>u</sub>) and dot(v<sup>P</sup><sub>t-1</sub>, W<sup>P</sup><sub>v</sub>) are vectors, while the output of dot(u<sup>Q</sup>, W<sup>Q</sup><sub>u</sub>) is a matrix, therefore we broadcast (repeat the vector several times) the vectors to match the shape of the matrix and after that compute the sum of three matrices. Then we apply tanh activation on the result. The output of this operation is then propagated further and multiplied (dot product) by weights ``V``, after which ``softmax`` activation is applied. The output of the ``softmax`` is a vector of nonnegative numbers that represent the "importance" of each word in the question. That is usually called an attention vector. When computing dot product with u<sup>Q</sup> (vector representation of the question) we’ll know how much attention does each element of vector u<sup>Q</sup> needs. The intuition behind this part is that we want to combine the passage, question and previous states to obtain information that indicates to which part of the question we should pay attention to during this iteration.
+We compute the dot product of each input with the corresponding weights, then sum-up all together after broadcasting them into the same shape. The outputs of dot(u<sup>P</sup><sub>t</sub>, W<sup>P</sup><sub>u</sub>) and dot(v<sup>P</sup><sub>t-1</sub>, W<sup>P</sup><sub>v</sub>) are vectors, while the output of dot(u<sup>Q</sup>, W<sup>Q</sup><sub>u</sub>) is a matrix, therefore we broadcast (repeat several times) the vectors to match the shape of the matrix and then compute the sum of three matrices. Then we apply tanh activation on the result. The output of this operation is then propagated further and multiplied (dot product) by weights ``V``, after which ``softmax`` activation is applied. The output of the ``softmax`` is a vector of nonnegative numbers that represent the "importance" of each word in the question. This is usually called an _attention vector_. When computing the dot product of u<sup>Q</sup> (matrix representation of the question) and the attention vector, we obtain a single vector for the entire question which is a weighted average of question word vectors (weighted by the attention scores). The intuition behind this part is that we get a representation of the parts of the question that are relevant to the current word of the passage. This representation, denoted by c<sub>t</sub>, depends on the current word, the whole question and the previous state of the recurrent cell.
 
-After having the question vector scaled by its attention we concatenate it to the passage-vector and compute dot product with corresponding weight Wg after which sigmoid activation is applied.
+These ideas seem to come from a paper by [Rocktäschel et al.](https://arxiv.org/abs/1509.06664) from Deepmind. The authors suggested to pass this c<sub>t</sub> vector as an input to the GRU cell. [Wang and Jiang](https://arxiv.org/abs/1512.08849) from Singapore Management University argued that passing c<sub>t</sub> is not enough, because we are losing information from the "original" input u<sup>P</sup><sub>t</sub>. So they suggested to concatenate c<sub>t</sub> and u<sup>P</sup><sub>t</sub> before passing it to the GRU cell.
+ 
+The authors of R-Net did one more step. They have applied one more gate to the concatenated vector \[c<sub>t</sub>, u<sup>P</sup><sub>t</sub>\]. The gate is simply a dot product of some new weight matrix W<sub>g</sub> and the concatenated vector, passed through a sigmoid activation function. The output of the gate is a vector of non-negative numbers, which is then (element-wise) multiplied by the original concatenated vector (see Formula 6 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The result of this multiplication is finally passed to the GRU cell as an input.
 
-Finally we multiply the concatenated vector of passage and question-attention with the result of sigmoid to pass the result as the next input of the GRU cell.
 
 ## 3. [Apply self-matching attention on the passage to get its final representation](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SelfAttnGRU.py)
 
