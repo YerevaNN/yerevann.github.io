@@ -125,7 +125,7 @@ vP = QuestionAttnGRU(units=H,
 
 Now let’s have a look at how QuestionAttnGRU works. It is a complex extension of a recurrent layer (extends WrappedGRU and overrides the step method by adding additional operations before passing the input to gru cell)․
 
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Question Attention GRU")
+![QuestionAttnGRU](../public/2017-08-22/QuestionAttnGRU.png "Question Attention GRU")
 
 The vectors of question aware representation of the passage are denoted by v<sup>P</sup>. As a reminder u<sup>P</sup><sub>t</sub> is the vector representation of the passage P, u<sup>Q</sup> is the vector representation of the question Q.
 
@@ -156,7 +156,7 @@ The output of the previous step (Question attention) is v<sup>P</sup>. It repres
 
 We denote the output of self-matching GRU cell at time t by h<sup>P</sup><sub>t</sub>.
 
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Self-Matching Attention GRU")
+![SelfAttnGRU](../public/2017-08-22/SelfAttnGRU.png "Self-matching Attention GRU")
 
 In this module first we compute dot products of weights WPPu with v<sup>P</sup> and W
 <sup>P</sup><sub>v</sub>  with v<sup>P</sup>, then adding them up and applying ``tanh`` activation. Next the result is multiplied with weight-vector ``V`` applying a ``softmax`` activation, which is then multiplied by the input vector v<sup>P</sup> to obtain the next attraction vector. The attraction vector is then concatenated with v<sup>P</sup> itself. We multiply the resulting vector by weight Wg and apply sigmoid activation, after which it’s multiplied by the concatenated vector and passed as the next input to the GRU cell.
@@ -192,7 +192,7 @@ QuestionPooling is the attention pooling of the whole question vector u<sup>Q</s
 
 As h<sup>P</sup> is the output of the previous module and it contains the final representation of the passage having the needed information about question, it is passed to this module as an input to obtain the final answer.
 
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Pointer GRU")
+![PointerGRU](../public/2017-08-22/PointerGRU.png "Pointer GRU")
 
 Let’s look at how PointerGRU works. Both h<sup>P</sup> and the previous state of the PointerGRU cell are multiplied by their corresponding weights W and W<sup>a</sup><sub>v</sub>. As a reminder the initial hidden vector of the PointerGRU is the output of QuestionPooling. The products are then summed up after which tanh activation is applied. The result is multiplied by weight vector ``V`` and ``softmax`` activation is applied which is then multiplied by input vector h<sup>P</sup> to obtain attention on h<sup>P</sup>. The attention vector of h<sup>P</sup> is passed as an input to the GRU cell.
 
