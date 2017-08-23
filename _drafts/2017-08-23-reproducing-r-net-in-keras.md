@@ -157,17 +157,15 @@ The output of self-matching GRU cell at time `t` is denoted by h<sup>P</sup><sub
 
 ![SelfAttnGRU](../public/2017-08-22/SelfAttnGRU.png "Self-matching Attention GRU")
 
-The implementation is very similar to the previous module. We compute dot products of weights W<sup>PP</sup><sub>u</sub> with the current word vector v<sup>P</sup><sub>t</sub>, and W<sup>P</sup><sub>v</sub> with the entire v<sup>P</sup> matrix, then add them up and apply ``tanh`` activation. Next, the result is multiplied with a weight-vector ``V`` and passed through ``softmax`` activation, which produces an attention vector. The dot product of the attention vector and v<sup>P</sup> matrix, again denoted by c<sub>t</sub>, is the weighted average of all word vectors of the passage that are relevant to the current word. c<sub>t</sub> is then concatenated with v<sup>P</sup><sub>t</sub> itself. The concatenated vector is passed through a gate and is given to GRU cell as an input.
+The implementation is very similar to the previous module. We compute dot products of weights W<sup>PP</sup><sub>u</sub> with the current word vector v<sup>P</sup><sub>t</sub>, and W<sup>P</sup><sub>v</sub> with the entire v<sup>P</sup> matrix, then add them up and apply ``tanh`` activation. Next, the result is multiplied by a weight-vector ``V`` and passed through ``softmax`` activation, which produces an attention vector. The dot product of the attention vector and v<sup>P</sup> matrix, again denoted by c<sub>t</sub>, is the weighted average of all word vectors of the passage that are relevant to the current word v<sup>P</sup><sub>t</sub>. c<sub>t</sub> is then concatenated with v<sup>P</sup><sub>t</sub> itself. The concatenated vector is passed through a gate and is given to GRU cell as an input.
 
 The authors consider this step as their main contribution to the architecture.
 
 ## 4. [Predict the interval which contains the answer of a question](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/PointerGRU.py)
 
-[https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py)
+[https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py]
 
-Finally we're ready to predict the interval of the passage which contains the answer of the question.
-
-To accomplish this task we use QuestionPooling layer followed by a PointerGRU (pointer networks (Vinyals et al., 2015)).
+Finally we're ready to predict the interval of the passage which contains the answer of the question. To do this we use [QuestionPooling layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py) followed by a PointerGRU ([Vinyals et al., Pointer networks, 2015](https://arxiv.org/abs/1506.03134)).
 
 [Code on GitHub](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L118)
 ```python
@@ -186,15 +184,19 @@ answer_start = Slice(0, name='answer_start ') (ps)
 answer_end = Slice(1, name='answer_end') (ps)
 ```
 
-QuestionPooling is the attention pooling of the whole question vector u<sup>Q</sup>. It’s purpouse is to create the first state of the inference vector for the PointerGRU. It’s not preprocessing the question or the information about it but instead it creates a state for PointerGRU.
+QuestionPooling is the attention pooling of the whole question vector u<sup>Q</sup>. Its purpose is to create the first hidden state of the PointerGRU.
 
 As h<sup>P</sup> is the output of the previous module and it contains the final representation of the passage having the needed information about question, it is passed to this module as an input to obtain the final answer.
 
 ![PointerGRU](../public/2017-08-22/PointerGRU.png "Pointer GRU")
 
-Let’s look at how PointerGRU works. Both h<sup>P</sup> and the previous state of the PointerGRU cell are multiplied by their corresponding weights W and W<sup>a</sup><sub>v</sub>. As a reminder the initial hidden vector of the PointerGRU is the output of QuestionPooling. The products are then summed up after which tanh activation is applied. The result is multiplied by weight vector ``V`` and ``softmax`` activation is applied which is then multiplied by input vector h<sup>P</sup> to obtain attention on h<sup>P</sup>. The attention vector of h<sup>P</sup> is passed as an input to the GRU cell.
+Let’s look at how PointerGRU works. Both h<sup>P</sup> and the previous state of the PointerGRU cell are multiplied by their corresponding weights W and W<sup>a</sup><sub>v</sub>. As a reminder the initial hidden state of the PointerGRU is the output of QuestionPooling. The products are then summed up after which ``tanh`` activation is applied. The result is multiplied by the weight vector ``V`` and ``softmax`` activation is applied which outputs an attention vector over h<sup>P</sup>. The dot product of h<sup>P</sup> and the attention vector is passed as an input to the GRU cell.
 
-## Utility classes, Masking, Generators in Keras...
+**TODO: This GRU is run for just 2 steps, correct?**
+
+**TODO: At this point the output is a vector. how do we get probabilities?**
+
+## Implementation details
 
 #### [Softmax layer with masking](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L7):
 
