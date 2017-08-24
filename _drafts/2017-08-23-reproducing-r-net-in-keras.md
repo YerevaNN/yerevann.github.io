@@ -63,9 +63,9 @@ Some parts of R-Net architecture require to use tensors that are neither part of
 To make it easier to create GRU cells with additional features and operations we’ve created a [utility class called **WrappedGRU**](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/WrappedGRU.py) which is a base class for all GRU modules. The most important feature is that WrappedGRU supports operations with non-sequences (getting global parameters as an input). Also WrappedGRU needs to support sharing weights between modules, therefore it has to be able to get SharedWeight as an input. Keras doesn’t support weight sharing __TODO: link!!__, but instead it supports layer sharing and we use [SharedWeight layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SharedWeight.py) to solve this problem (SharedWeight is a layer that has no inputs and returns tensor of weights).
 
 
-## 1. [Question and Passage Encoder](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/preprocessing.py)
+## 1. Question and Passage Encoder
 
-This step consists of two parts: preprocessing and text encoding. The preprocessing is done in a separate process and is not part of the neural network. First we preprocess the data by splitting it into parts, and then we convert all the words to corresponding vectors. Word-vectors are generated with gensim’s ``word2vec`` function. **TODO: link**
+This step consists of two parts: [preprocessing](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/preprocessing.py) and text encoding. The preprocessing is done in a separate process and is not part of the neural network. First we preprocess the data by splitting it into parts, and then we convert all the words to corresponding vectors. Word-vectors are generated using [gensim](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/preprocessing.py#L35).
 
 The next steps are already part of the model. Each word is represented by a concatenation of two vectors: its GloVe vector and another vector that holds character level information. To obtain character level embeddings we use an Embedding layer followed by a Bidirectional GRU cell wrapped inside a TimeDistributed layer. Basically, each character is embedded in `H` dimensional space, and a BiGRU runs over those embeddings to produce a vector for the word. The process is repeated for all the words using TimeDistributed layer.
 
@@ -105,7 +105,7 @@ uQ = Dropout(rate=dropout_rate, name='uQ') (uQ)
 
 After encoding the passage and the question we finally have their vector representations u<sup>P</sup> and u<sup>Q</sup>. Now we can delve deeper in understanding the meaning of the passage having in mind the question.
 
-## 2. [Obtain question aware representation for the passage](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionAttnGRU.py)
+## 2. Obtain question aware representation for the passage
 
 The next module computes another representation for the passage by taking into account the words inside the question sentence. We implement it using the following code:
 
@@ -118,7 +118,7 @@ vP = QuestionAttnGRU(units=H,
 		     ])
 ```
 
-QuestionAttnGRU is a complex extension of a recurrent layer (extends WrappedGRU and overrides the step method by adding additional operations before passing the input to the GRU cell).
+[QuestionAttnGRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionAttnGRU.py) is a complex extension of a recurrent layer (extends WrappedGRU and overrides the step method by adding additional operations before passing the input to the GRU cell).
 
 ![QuestionAttnGRU](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/QuestionAttnGRU.svg "Question Attention GRU")
 
@@ -136,7 +136,7 @@ These ideas seem to come from a paper by [Rocktäschel et al.](https://arxiv.org
 The authors of R-Net did one more step. They applied an additional gate to the concatenated vector \[c<sub>t</sub>, u<sup>P</sup><sub>t</sub>\]. The gate is simply a dot product of some new weight matrix W<sub>g</sub> and the concatenated vector, passed through a sigmoid activation function. The output of the gate is a vector of non-negative numbers, which is then (element-wise) multiplied by the original concatenated vector (see formula 6 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The result of this multiplication is finally passed to the GRU cell as an input.
 
 
-## 3. [Apply self-matching attention on the passage to get its final representation](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SelfAttnGRU.py)
+## 3. Apply self-matching attention on the passage to get its final representation
 
 Next, the authors suggest to add a self attention mechanism on the passage itself.
 
@@ -150,7 +150,7 @@ hP = Bidirectional(SelfAttnGRU(units=H,
 hP = Dropout(rate=dropout_rate, name='hP') (hP)
 ```
 
-The output of the previous step (Question attention) is denoted by v<sup>P</sup>. It represents the encoding of the passage while taking into account the question. v<sup>P</sup> is passed as an input to the self-matching attention module (top input, left input). The authors argue that the vectors v<sup>P</sup><sub>t</sub> have very limited information about the context. Self-matching attention module attempts to augment the passage vectors by information from other relevant parts of the passage.
+The output of the previous step (Question attention) is denoted by v<sup>P</sup>. It represents the encoding of the passage while taking into account the question. v<sup>P</sup> is passed as an input to the self-matching attention module (top input, left input). The authors argue that the vectors v<sup>P</sup><sub>t</sub> have very limited information about the context. [Self-matching attention module](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SelfAttnGRU.py) attempts to augment the passage vectors by information from other relevant parts of the passage.
 
 The output of self-matching GRU cell at time `t` is denoted by h<sup>P</sup><sub>t</sub>.
 
@@ -160,7 +160,7 @@ The implementation is very similar to the previous module. We compute dot produc
 
 The authors consider this step as their main contribution to the architecture.
 
-## 4. [Predict the interval which contains the answer of a question](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/PointerGRU.py)
+## 4. Predict the interval which contains the answer of a question
 
 Finally we're ready to predict the interval of the passage which contains the answer of the question. To do this we use [QuestionPooling layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py) followed by PointerGRU ([Vinyals et al., Pointer networks, 2015](https://arxiv.org/abs/1506.03134)).
 
@@ -191,7 +191,7 @@ In Section 4.2 of the [technical report](https://www.microsoft.com/en-us/researc
 
 ![PointerGRU](https://rawgit.com/YerevaNN/yerevann.github.io/master//public/2017-08-22/PointerGRU.svg "Pointer GRU")
 
-PointerGRU is a recurrent network that works for just two steps. The first step predicts the first word of the answer span, and the second step predicts the last word. Here is how it works. Both h<sup>P</sup> and the previous state of the PointerGRU cell are multiplied by their corresponding weights W and W<sup>a</sup><sub>v</sub>. Recall that the initial hidden state of the PointerGRU is the output of QuestionPooling. The products are then summed up and passed through ``tanh`` activation. The result is multiplied by the weight vector ``V`` and ``softmax`` activation is applied which outputs scores over h<sup>P</sup>. These scores, denoted by a<sup>t</sup> are probabilities over the words of the passage. Argmax of a<sup>1</sup> vector is the predicted starting point, and argmax of a<sup>2</sup> is the predicted final point of the answer (formula 9 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The hidden state of PointerGRU is determined based on the dot product of h<sup>P</sup> and a<sup>t</sup>, which is passed as an input to a simple GRU cell (formula 10 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). So, unlike all previous modules of R-Net, the _output_ of PointerGRU (the red diamond at the top-right corner of the chart) is different from its hidden state. 
+[PointerGRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/PointerGRU.py) is a recurrent network that works for just two steps. The first step predicts the first word of the answer span, and the second step predicts the last word. Here is how it works. Both h<sup>P</sup> and the previous state of the PointerGRU cell are multiplied by their corresponding weights W and W<sup>a</sup><sub>v</sub>. Recall that the initial hidden state of the PointerGRU is the output of QuestionPooling. The products are then summed up and passed through ``tanh`` activation. The result is multiplied by the weight vector ``V`` and ``softmax`` activation is applied which outputs scores over h<sup>P</sup>. These scores, denoted by a<sup>t</sup> are probabilities over the words of the passage. Argmax of a<sup>1</sup> vector is the predicted starting point, and argmax of a<sup>2</sup> is the predicted final point of the answer (formula 9 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The hidden state of PointerGRU is determined based on the dot product of h<sup>P</sup> and a<sup>t</sup>, which is passed as an input to a simple GRU cell (formula 10 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). So, unlike all previous modules of R-Net, the _output_ of PointerGRU (the red diamond at the top-right corner of the chart) is different from its hidden state. 
 
 ## Implementation details
 
