@@ -55,7 +55,7 @@ We are using [GRU](https://arxiv.org/abs/1412.3555) cells (Gated Recurrent Unit)
 
 Most of the modules of R-Net are implemented as recurrent networks with very complex cells. We visualize these cells in colorful charts. Here is a chart that corresponds to the original GRU cell:
 
-TODO: chart for GRU
+![GRU](../public/2017-08-22/GRU.svg "GRU")
 
 White rectangles represent operations on tensors ()dot product, sum, etc.). Yellow rectangles are activations (tanh, softmax or sigmoid). Red circles are the weights of the network.
 
@@ -121,7 +121,7 @@ vP = QuestionAttnGRU(units=H,
 
 QuestionAttnGRU is a complex extension of a recurrent layer (extends WrappedGRU and overrides the step method by adding additional operations before passing the input to the GRU cell).
 
-![QuestionAttnGRU](../public/2017-08-22/QuestionAttnGRU.png "Question Attention GRU")
+![QuestionAttnGRU](../public/2017-08-22/QuestionAttnGRU.svg "Question Attention GRU")
 
 The vectors of question aware representation of the passage are denoted by v<sup>P</sup>. As a reminder u<sup>P</sup><sub>t</sub> is the vector representation of the passage P, u<sup>Q</sup> is the matrix representation of the question Q (each row corresponds to a single word).
 
@@ -153,9 +153,7 @@ The output of the previous step (Question attention) is denoted by v<sup>P</sup>
 
 The output of self-matching GRU cell at time `t` is denoted by h<sup>P</sup><sub>t</sub>.
 
-**TODO: the image is wrong, the upper v^P should be v^P_t**
-
-![SelfAttnGRU](../public/2017-08-22/SelfAttnGRU.png "Self-matching Attention GRU")
+![SelfAttnGRU](../public/2017-08-22/SelfAttnGRU.svg "Self-matching Attention GRU")
 
 The implementation is very similar to the previous module. We compute dot products of weights W<sup>PP</sup><sub>u</sub> with the current word vector v<sup>P</sup><sub>t</sub>, and W<sup>P</sup><sub>v</sub> with the entire v<sup>P</sup> matrix, then add them up and apply ``tanh`` activation. Next, the result is multiplied by a weight-vector ``V`` and passed through ``softmax`` activation, which produces an attention vector. The dot product of the attention vector and v<sup>P</sup> matrix, again denoted by c<sub>t</sub>, is the weighted average of all word vectors of the passage that are relevant to the current word v<sup>P</sup><sub>t</sub>. c<sub>t</sub> is then concatenated with v<sup>P</sup><sub>t</sub> itself. The concatenated vector is passed through a gate and is given to GRU cell as an input.
 
@@ -188,7 +186,7 @@ h<sup>P</sup> is the output of the previous module and it contains the final rep
 
 In Section 4.2 of the [technical report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf) the authors write that after submitting their paper to ACL they made one more modification. They have added [another bidirectional GRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L114-L116) on top of h<sup>P</sup> before feeding it to PointerGRU. 
 
-![PointerGRU](../public/2017-08-22/PointerGRU.png "Pointer GRU")
+![PointerGRU](../public/2017-08-22/PointerGRU.svg "Pointer GRU")
 
 PointerGRU is a recurrent network that works for just two steps. The first step predicts the first word of the answer span, and the second step predicts the last word. Here is how it works. Both h<sup>P</sup> and the previous state of the PointerGRU cell are multiplied by their corresponding weights W and W<sup>a</sup><sub>v</sub>. Recall that the initial hidden state of the PointerGRU is the output of QuestionPooling. The products are then summed up and passed through ``tanh`` activation. The result is multiplied by the weight vector ``V`` and ``softmax`` activation is applied which outputs scores over h<sup>P</sup>. These scores, denoted by a<sup>t</sup> are probabilities over the words of the passage. Argmax of a<sup>1</sup> vector is the predicted starting point, and argmax of a<sup>2</sup> is the predicted final point of the answer (formula 9 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The hidden state of PointerGRU is determined based on the dot product of h<sup>P</sup> and a<sup>t</sup>, which is passed as an input to a simple GRU cell (formula 10 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)).
 
