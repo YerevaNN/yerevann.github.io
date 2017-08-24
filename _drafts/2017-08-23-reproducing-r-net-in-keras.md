@@ -78,9 +78,11 @@ TimeDistributed(Sequential([
 ]))
 ```
 
+When the word is missing from GloVe, we set its word vector to all zeros (as described in the technical report).
+
 Following the notation of the paper, we denote the vector representation of the question by u<sup>Q</sup> and the representation of the passage by u<sup>P</sup> (Q corresponds to the question and P corresponds to the passage).
 
-Having the preprocessed question ``Q`` and the passage ``P`` we first apply Masking on each one and then encode each of them with 3 consecutive bidirectional GRU layers.
+The network takes the preprocessed question ``Q`` and the passage ``P``, applies masking on each one and then encodes them with 3 consecutive bidirectional GRU layers.
 
 [Code on GitHub](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L81)
 ```python
@@ -152,13 +154,15 @@ hP = Dropout(rate=dropout_rate, name='hP') (hP)
 
 The output of the previous step (Question attention) is denoted by v<sup>P</sup>. It represents the encoding of the passage while taking into account the question. v<sup>P</sup> is passed as an input to the self-matching attention module (top input, left input). The authors argue that the vectors v<sup>P</sup><sub>t</sub> have very limited information about the context. [Self-matching attention module](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SelfAttnGRU.py) attempts to augment the passage vectors by information from other relevant parts of the passage.
 
-The output of self-matching GRU cell at time `t` is denoted by h<sup>P</sup><sub>t</sub>.
+The output of the self-matching GRU cell at time `t` is denoted by h<sup>P</sup><sub>t</sub>.
 
 ![SelfAttnGRU](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/SelfAttnGRU.svg "Self-matching Attention GRU")
 
 The implementation is very similar to the previous module. We compute dot products of weights W<sup>PP</sup><sub>u</sub> with the current word vector v<sup>P</sup><sub>t</sub>, and W<sup>P</sup><sub>v</sub> with the entire v<sup>P</sup> matrix, then add them up and apply ``tanh`` activation. Next, the result is multiplied by a weight-vector ``V`` and passed through ``softmax`` activation, which produces an attention vector. The dot product of the attention vector and v<sup>P</sup> matrix, again denoted by c<sub>t</sub>, is the weighted average of all word vectors of the passage that are relevant to the current word v<sup>P</sup><sub>t</sub>. c<sub>t</sub> is then concatenated with v<sup>P</sup><sub>t</sub> itself. The concatenated vector is passed through a gate and is given to GRU cell as an input.
 
 The authors consider this step as their main contribution to the architecture.
+
+It is interesting to note that the authors write `BiRNN` in Section 3.3 (Self-Matching Attention) and just `RNN` in Section 3.2 (which describes question-aware passage representation). For that reason we used BiGRU in SelfAttnGRU and unidirectional GRU in QuestionAttnGRU. Later we discovered a sentence in Section 4.1 that suggests that we were not correct: `the gated attention-based recurrent network for question and passage matching is also encoded bidirectionally in our experiment`. 
 
 ## 4. Predict the interval which contains the answer of a question
 
@@ -221,9 +225,31 @@ Note that we do not use argmax layer during the training. The vector of probabil
 [Slice layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/Slice.py) is supposed to slice and return the input tensor at the given indices. It also supports masking. The slice layer in R-Net model is needed to extract the final answer (i.e. the ``interval_start`` and ``interval_end`` numbers). The final output of the model is a tensor with shape (batch x 2 x passage_length). The first row contains probabilities for ``answer_start`` and the second one for ``answer_end``, that’s why we need to [slice](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L134-L135) the rows first and then extract the required information. Obviously we could accomplish the task without creating a new layer, yet it wouldn’t be a "Kerasic" solution.
 
 
-#### Generators:
+#### Generators
 
 Keras supports [batch generators](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/data.py#L46) which are responsible for generating one batch per each iteration. One benefit of this approach is that the generator is working on a separate thread and is not waiting for the network to finish its training on the previous batch.
+
+
+#### Bidirectional GRUs
+
+Bidirectional RNN Mikolov 2010
+
+
+#### Dropout
+
+The report indicates that dropout is applied "between layers with a dropout rate of 0.2". We have applied dropout [before each of the three layers](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L85) of BiGRUs of both encoders, at the [outputs of both encoders](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L87), right [after QuestionAttnGRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L103), [after SelfAttnGRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L112) and [after QuestionPooling](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L119) layer. We are not sure that this is exactly what the authors did.
+
+One more implementation detail related to dropout is related to the way it is applied on the passage and question representation matrices. The rows of these matrices correspond to different words and the "vanilla" dropout will apply different masks on different words. But it is a common trick to apply the same mask at each "timestep", i.e. each word. That's how dropout is implemented **TODO: link** in recurrent layers in Keras. The report doesn't discuss these details.
+
+
+#### Weight sharing
+
+The report doesn't explicitly describe which weights are shared. We have decided to share those weights that are represented by the same symbol in the report. Note that the authors use the same symbol (e.g. c<sub>t</sub>) for different variables (not weights) that obviously cannot be shared. But we hope that our assumption is true for weights. In particular, we share: 
+* W<sup>Q</sup><sub>u</sub> matrix between `QuestionAttnGRU` and `QuestionPooling` layers,
+* W<sup>P</sup><sub>v</sub> matrix between `QuestionAttnGRU` and `SelfAttnGRU` layers,
+* `V` vector between all four instances (it is used right before applying softmax).
+
+We didn't share the weights of the "attention gates": W<sub>g</sub>. The reason is that we have a mix of uni- and bidirectional GRUs that use this gate and require different dimensions.  
 
 
 #### Training
@@ -268,6 +294,9 @@ model.fit_generator(generator=train_data_gen,
                     callbacks=[ ModelCheckpoint(path, verbose=1, save_best_only=True) ])
 ```
 
+#### Hyperparameters
+
+
 ## Results and comparison with [R-Net paper](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)
 
 
@@ -283,3 +312,6 @@ The current best single-model on SQuAD leaderboard has a higher score, which mea
 
 Our work is the implementation of the first version, but we cannot yet reproduce the reported results (EM=71.3% and F1=79.7%). The best performance we got so far was EM=54.21% and F1=65.26% on the dev set.
 
+## Challenges of reproducibility
+
+Number of parameters. Hugo's slides.
