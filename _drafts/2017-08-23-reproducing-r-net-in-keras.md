@@ -22,7 +22,7 @@ In this post we describe our attempt to re-implement a neural architecture for a
 
 Given a passage and a question, our task is to predict an answer to the question based on the information found in the passage. The SQuAD dataset further constrains the answer to be a continuous sub-span of the provided passage. Answers usually include non-entities and can be long phrases. The neural network needs to "understand"" both the passage and the question in order to be able to give a valid answer.
 
-### Example from the dataset:
+#### Example from the dataset:
 
 **Passage:** Tesla later approached Morgan to ask for more funds to build a more powerful transmitter. When asked where all the money had gone, Tesla responded by saying that he was affected by the Panic of 1901, which he (Morgan) had caused. Morgan was shocked by the reminder of his part in the stock market crash and by Tesla’s breach of contract by asking for more funds. Tesla wrote another plea to Morgan, but it was also fruitless. Morgan still owed Tesla money on the original agreement, and Tesla had been facing foreclosure even before construction of the tower began.
 
@@ -32,7 +32,7 @@ Given a passage and a question, our task is to predict an answer to the question
 
 ## Architecture and Code:
 
-The [architecture](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py) of R-Net network takes the question and the passage as inputs and outputs an interval on the passage that contains the answer. The process consists of several steps:
+The [architecture](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py) of R-Net network is designed to take the question and the passage as inputs and to output an interval on the passage that contains the answer. The process consists of several steps:
 1. Encode the question and the passage
 2. Obtain question aware representation for the passage
 3. Apply self-matching attention on the passage to get its final representation.
@@ -43,21 +43,20 @@ Each of these steps is implemented as some sort of recurrent neural network. The
 
 ### Visualizing Complex Recurrent Networks
 
-Recurrent NN h(t) = A(xt, ht) = schema
+We are using [GRU](https://arxiv.org/abs/1412.3555) cells (Gated Recurrent Unit) for all RNNs. The authors claim that their performance is similar to LSTM, but they are computationally cheaper.
 
-Unrolled grpah
+![GRU network](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRU.svg "GRU network")
 
-State + input
+Most of the modules of R-Net are implemented as recurrent networks with very complex cells. We visualize these cells using colorful charts. Here is a chart that corresponds to the original GRU cell.
 
-Output = all h(t) outputs or only the last one
+![GRU cell](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRUcell.svg "GRU cell")
 
-We are using [GRU](https://arxiv.org/abs/1412.3555) cells (Gated Recurrent Unit) for all RNNs. The authors claim that they perform similar to LSTM cells but are computationally cheaper.
+Compare this to the formula of GRU cell (taken from [Olah's famous blogpost](http://colah.github.io/posts/2015-08-Understanding-LSTMs/)):
 
-Most of the modules of R-Net are implemented as recurrent networks with very complex cells. We visualize these cells in colorful charts. Here is a chart that corresponds to the original GRU cell:
+![GRU formula](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRUformula.png "GRU formula")
 
-![GRU](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRU.svg "GRU")
 
-White rectangles represent operations on tensors ()dot product, sum, etc.). Yellow rectangles are activations (tanh, softmax or sigmoid). Red circles are the weights of the network.
+White rectangles represent operations on tensors (dot product, sum, etc.). Yellow rectangles are activations (tanh, softmax or sigmoid). Red circles are the weights of the network.
 
 Some parts of R-Net architecture require to use tensors that are neither part of a GRU state nor part of an input at time `t`. These are "global" variables that are used in all timesteps. Following [Theano's terminology](http://deeplearning.net/software/theano/library/scan.html), we call these global variables _non-sequences_.
 
@@ -121,7 +120,7 @@ vP = QuestionAttnGRU(units=H,
 
 QuestionAttnGRU is a complex extension of a recurrent layer (extends WrappedGRU and overrides the step method by adding additional operations before passing the input to the GRU cell).
 
-![QuestionAttnGRU](https://rawgit.com/YerevaNN/yerevann.github.io/master//public/2017-08-22/QuestionAttnGRU.svg "Question Attention GRU")
+![QuestionAttnGRU](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/QuestionAttnGRU.svg "Question Attention GRU")
 
 The vectors of question aware representation of the passage are denoted by v<sup>P</sup>. As a reminder u<sup>P</sup><sub>t</sub> is the vector representation of the passage P, u<sup>Q</sup> is the matrix representation of the question Q (each row corresponds to a single word).
 
