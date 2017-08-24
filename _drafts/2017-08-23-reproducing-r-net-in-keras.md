@@ -163,9 +163,7 @@ The authors consider this step as their main contribution to the architecture.
 
 ## 4. [Predict the interval which contains the answer of a question](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/PointerGRU.py)
 
-[https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py]
-
-Finally we're ready to predict the interval of the passage which contains the answer of the question. To do this we use [QuestionPooling layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py) followed by a PointerGRU ([Vinyals et al., Pointer networks, 2015](https://arxiv.org/abs/1506.03134)).
+Finally we're ready to predict the interval of the passage which contains the answer of the question. To do this we use [QuestionPooling layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py) followed by PointerGRU ([Vinyals et al., Pointer networks, 2015](https://arxiv.org/abs/1506.03134)).
 
 [Code on GitHub](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L118)
 ```python
@@ -178,23 +176,21 @@ ps = PointerGRU(units=2 * H,
                 return_sequences=True,
                 initial_state_provided=True,
                 name='ps',
-                unroll=unroll) ([ fake_input, gP, WP_h, Wa_h, v, rQ ])
+                unroll=unroll) ([ fake_input, hP, WP_h, Wa_h, v, rQ ])
 
 answer_start = Slice(0, name='answer_start ') (ps)
 answer_end = Slice(1, name='answer_end') (ps)
 ```
 
-QuestionPooling is the attention pooling of the whole question vector u<sup>Q</sup>. Its purpose is to create the first hidden state of the PointerGRU.
+QuestionPooling is the attention pooling of the whole question vector u<sup>Q</sup>. Its purpose is to create the first hidden state of PointerGRU.
 
-As h<sup>P</sup> is the output of the previous module and it contains the final representation of the passage having the needed information about question, it is passed to this module as an input to obtain the final answer.
+h<sup>P</sup> is the output of the previous module and it contains the final representation of the passage. It is passed to this module as an input to obtain the final answer.
+
+In Section 4.2 of the [technical report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf) the authors write that after submitting their paper to ACL they made one more modification. They have added [another bidirectional GRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L114-L116) on top of h<sup>P</sup> before feeding it to PointerGRU. 
 
 ![PointerGRU](../public/2017-08-22/PointerGRU.png "Pointer GRU")
 
-Let’s look at how PointerGRU works. Both h<sup>P</sup> and the previous state of the PointerGRU cell are multiplied by their corresponding weights W and W<sup>a</sup><sub>v</sub>. As a reminder the initial hidden state of the PointerGRU is the output of QuestionPooling. The products are then summed up after which ``tanh`` activation is applied. The result is multiplied by the weight vector ``V`` and ``softmax`` activation is applied which outputs an attention vector over h<sup>P</sup>. The dot product of h<sup>P</sup> and the attention vector is passed as an input to the GRU cell.
-
-**TODO: This GRU is run for just 2 steps, correct?**
-
-**TODO: At this point the output is a vector. how do we get probabilities?**
+PointerGRU is a recurrent network that works for just two steps. The first step predicts the first word of the answer span, and the second step predicts the last word. Here is how it works. Both h<sup>P</sup> and the previous state of the PointerGRU cell are multiplied by their corresponding weights W and W<sup>a</sup><sub>v</sub>. Recall that the initial hidden state of the PointerGRU is the output of QuestionPooling. The products are then summed up and passed through ``tanh`` activation. The result is multiplied by the weight vector ``V`` and ``softmax`` activation is applied which outputs scores over h<sup>P</sup>. These scores, denoted by a<sup>t</sup> are probabilities over the words of the passage. Argmax of a<sup>1</sup> vector is the predicted starting point, and argmax of a<sup>2</sup> is the predicted final point of the answer (formula 9 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The hidden state of PointerGRU is determined based on the dot product of h<sup>P</sup> and a<sup>t</sup>, which is passed as an input to a simple GRU cell (formula 10 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)).
 
 ## Implementation details
 
@@ -207,7 +203,7 @@ s = sum( for all i, ea[i] )
 softmax[i] = e^a[i] / s
 ```
 
-For numerical stability we use the following trick:
+For numerical stability we use the following classical trick:
 
 ```python
 m = max( for all i, a[i] )
@@ -217,7 +213,7 @@ s = sum( for all i, e^a[i] )
 
 And then compute ```softmax[i] = e[i] / s```
 
-In this way all ``a[i] - m`` values will be mapped to the range ``(-INF; 0]`` and therefore e<sup>a[i] - m</sup> will be mapped to the range ``(0;1]``. It will help in computing ``softmax[i]`` in each step as both ``e[i]`` and `s` will be small enough. If ``s`` is too small (smaller than epsilon) we add epsilon to s to avoid problems when dividing by zero.
+Here all ``a[i] - m`` values will be mapped to the range ``(-INF; 0]`` and therefore e<sup>a[i] - m</sup> will be mapped to the range ``(0;1]``. It will help in computing ``softmax[i]`` in each step as both ``e[i]`` and `s` will be small enough. If ``s`` is too small (smaller than epsilon) we add epsilon to ``s`` to avoid problems when dividing by zero.
 
 #### [Argmax layer with masking](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/Argmax.py):
 
