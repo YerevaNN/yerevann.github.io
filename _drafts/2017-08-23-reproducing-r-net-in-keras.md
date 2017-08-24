@@ -73,10 +73,10 @@ The next steps are already part of the model. Each word is represented by a conc
 [Code on GitHub](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L62)
 ```python
 TimeDistributed(Sequential([
-				InputLayer(input_shape=(C,), dtype='int32'),
-				Embedding(input_dim=127, output_dim=H, mask_zero=True),
-				Bidirectional(GRU(units=H))
-			     ]))
+    InputLayer(input_shape=(C,), dtype='int32'),
+    Embedding(input_dim=127, output_dim=H, mask_zero=True),
+    Bidirectional(GRU(units=H))
+]))
 ```
 
 Following the notation of the paper, we denote the vector representation of the question by u<sup>Q</sup> and the representation of the passage by u<sup>P</sup> (Q corresponds to the question and P corresponds to the passage).
@@ -91,8 +91,7 @@ uP = Masking() (P)
 for i in range(3):
     uP = Bidirectional(GRU(units=H,
                            return_sequences=True,
-                           dropout=dropout_rate,
-                           unroll=unroll)) (uP)
+                           dropout=dropout_rate)) (uP)
 uP = Dropout(rate=dropout_rate, name='uP') (uP)
 
 # Encode the question Q
@@ -101,8 +100,7 @@ uQ = Masking() (Q)
 for i in range(3):
     uQ = Bidirectional(GRU(units=H,
                            return_sequences=True,
-                           dropout=dropout_rate,
-                           unroll=unroll)) (uQ)
+                           dropout=dropout_rate)) (uQ)
 uQ = Dropout(rate=dropout_rate, name='uQ') (uQ)
 ```
 
@@ -115,8 +113,10 @@ The next module computes another representation for the passage by taking into a
 [Code on GitHub](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L97)
 ```python
 vP = QuestionAttnGRU(units=H,
-		       return_sequences=True,
-		       unroll=unroll) ([ uP, uQ, WQ_u, WP_v, WP_u, v, W_g1 ])
+		     return_sequences=True) ([
+		         uP, uQ,
+			 WQ_u, WP_v, WP_u, v, W_g1
+		     ])
 ```
 
 QuestionAttnGRU is a complex extension of a recurrent layer (extends WrappedGRU and overrides the step method by adding additional operations before passing the input to the GRU cell).
@@ -143,9 +143,11 @@ Next, the authors suggest to add a self attention mechanism on the passage itsel
 
 [Code on GitHub](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L105)
 ```python
-hP = Bidirectional(SelfAttnGRU( units=H,
-	                        return_sequences=True,
-	                        unroll=unroll)) ([ vP, vP, WP_v, WPP_v, v, W_g2 ])
+hP = Bidirectional(SelfAttnGRU(units=H,
+	                       return_sequences=True)) ([
+			           vP, vP,
+				   WP_v, WPP_v, v, W_g2
+			       ])
 hP = Dropout(rate=dropout_rate, name='hP') (hP)
 ```
 
@@ -173,8 +175,10 @@ rQ = Dropout(rate=dropout_rate, name='rQ') (rQ)
 ps = PointerGRU(units=2 * H,
                 return_sequences=True,
                 initial_state_provided=True,
-                name='ps',
-                unroll=unroll) ([ fake_input, hP, WP_h, Wa_h, v, rQ ])
+                name='ps') ([
+		    fake_input, hP,
+		    WP_h, Wa_h, v, rQ
+		])
 
 answer_start = Slice(0, name='answer_start ') (ps)
 answer_end = Slice(1, name='answer_end') (ps)
@@ -269,8 +273,7 @@ model.fit_generator(generator=train_data_gen,
                     validation_data=valid_data_gen,
                     validation_steps=valid_data_gen.steps(),
                     epochs=args.nb_epochs,
-                    callbacks=[ ModelCheckpoint(path, verbose=1, save_best_only=True) ]
-                    )
+                    callbacks=[ ModelCheckpoint(path, verbose=1, save_best_only=True) ])
 ```
 
 ## Results and comparison with [R-Net paper](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)
