@@ -194,9 +194,9 @@ PointerGRU is a recurrent network that works for just two steps. The first step 
 
 ## Implementation details
 
-#### [Softmax layer with masking](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L7):
+#### Softmax layer with masking
 
-To be able to take into account the Masking we’ve created a custom Softmax activation. As a reminder softmax for activation a[i] is defined as:
+One of the most important challenges in training recurrent networks is to handle different lengths of data points in a single batch. Keras has a [Masking layer](https://keras.io/layers/core/#masking) that handles the basic cases. We use it in the [encoding layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L81). But R-Net has more complex scenarios for which we had to develop our own solutions. For example, in all attention pooling modules we use ``softmax`` which is applied along "time" axis (e.g. over the words of the passage). We don't want to have positive probabilities after the last word of the sentence. So we have implemented a [custom Softmax function](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L7) which supports masking. Softmax for a vector `a` is defined as:
 
 ```python
 s = sum( for all i, ea[i] )
@@ -213,26 +213,28 @@ s = sum( for all i, e^a[i] )
 
 And then compute ```softmax[i] = e[i] / s```
 
-Here all ``a[i] - m`` values will be mapped to the range ``(-INF; 0]`` and therefore e<sup>a[i] - m</sup> will be mapped to the range ``(0;1]``. It will help in computing ``softmax[i]`` in each step as both ``e[i]`` and `s` will be small enough. If ``s`` is too small (smaller than epsilon) we add epsilon to ``s`` to avoid problems when dividing by zero.
+Here all ``a[i] - m`` values will be mapped to the range ``(-INF; 0]`` and therefore e<sup>a[i] - m</sup> will be mapped to the range ``(0;1]``. It will help in computing ``softmax[i]`` in each step as both ``e[i]`` and `s` will be small enough. If ``s`` is too small (smaller than epsilon) we add epsilon to ``s`` to avoid problems when dividing by zero. To support masking, we [multiply](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L15) ``e`` by the mask.
 
-#### [Argmax layer with masking](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/Argmax.py):
+Note that these details are not present in the technical report. Probably these are considered as commonly known tricks. But sometimes the details of masking can have critical effects (we know this from the work on [medical time series](https://arxiv.org/abs/1703.07771)).
 
-This layer is used when making predictions. It needs to support masking after a softmax layer. The result of argmax is the index of the maximum element of the input.
+#### Argmax layer with masking
 
-
-#### [Slice layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/Slice.py):
-
-Slice layer is supposed to slice and return the input tensor at provided indices. It also supports masking. The slice layer in r-net model is needed to extract the final answer (i.e. the interval_start and interval_end) numbers. The final output of the model is a tensor with shape (batch x 2 x passage_length). The first slice contains the answer_start and the second one answer_end, that’s why we need to slice the layers first and then extract the needed information. Obviously we could accomplish the task without creating a new Slice layer, yet it wouldn’t be a "kerasic" solution.
+[This layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/Argmax.py) is used when making predictions. It needs to support masking after a softmax layer, as we don't want to predict a word that doesn't belong to the sentence. The result of argmax is the index of the maximum element of the input.
 
 
-#### [Generators](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/data.py#L46):
+#### Slice layer
 
-Keras supports batch generators which are responsible for generating one batch per each iteration. One benefit of this approach is that generator is working on a separate thread and is not waiting for the network to finish its training on the previous batch.
+[Slice layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/Slice.py) is supposed to slice and return the input tensor at the given indices. It also supports masking. The slice layer in R-Net model is needed to extract the final answer (i.e. the ``interval_start`` and ``interval_end`` numbers). The final output of the model is a tensor with shape (batch x 2 x passage_length). The first row contains probabilities for ``answer_start`` and the second one for ``answer_end``, that’s why we need to [slice](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L134-L135) the rows first and then extract the required information. Obviously we could accomplish the task without creating a new layer, yet it wouldn’t be a "Kerasic" solution.
 
 
-#### [Training](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/train.py):
+#### Generators:
 
-The training script is very simple. First we create R-net model:
+Keras supports [batch generators](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/data.py#L46) which are responsible for generating one batch per each iteration. One benefit of this approach is that the generator is working on a separate thread and is not waiting for the network to finish its training on the previous batch.
+
+
+#### Training
+
+The [training script](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/train.py) is very simple. First we create R-Net model:
 
 ```python
 model = RNet(hdim=args.hdim,						# Defauls is 45
@@ -256,7 +258,7 @@ model.compile(optimizer=optimizer_config,
               metrics=['accuracy'])         # Check the accuracy of predicting intervals
 ```
 
-And fit it with training data, validating results on validation dataset. As mentioned above we’re using batch generators to fit data easily into the network. We’re saving the best model once per every epoch.
+We fit it with the training data, and validate the results on the validation dataset. We check the validation score after each epoch and save the current state of the model if it was better than the previous best one.
 
 
 ```python
@@ -273,7 +275,7 @@ model.fit_generator(generator=train_data_gen,
                     )
 ```
 
-## Results and comparison with [r-net paper](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)
+## Results and comparison with [R-Net paper](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)
 
 
 R-NET is currently (July 2017) the best model on Stanford QA database: [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/). SQuAD dataset uses two performance metrics, exact match (EM) and F1-score (F1). Human performance is estimated to be EM=82.3% and F1=91.2% on the test set.
