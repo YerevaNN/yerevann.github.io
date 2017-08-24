@@ -51,12 +51,12 @@ Most of the modules of R-Net are implemented as recurrent networks with very com
 
 ![GRU cell](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRUcell.svg "GRU cell")
 
-Compare this to the formula of GRU cell (taken from [Olah's famous blogpost](http://colah.github.io/posts/2015-08-Understanding-LSTMs/)):
+White rectangles represent operations on tensors (dot product, sum, etc.). Yellow rectangles are activations (tanh, softmax or sigmoid). Orange circles are the weights of the network. Compare this to the formula of GRU cell (taken from [Olah's famous blogpost](http://colah.github.io/posts/2015-08-Understanding-LSTMs/)):
 
 ![GRU formula](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRUformula.png "GRU formula")
 
 
-White rectangles represent operations on tensors (dot product, sum, etc.). Yellow rectangles are activations (tanh, softmax or sigmoid). Red circles are the weights of the network.
+
 
 Some parts of R-Net architecture require to use tensors that are neither part of a GRU state nor part of an input at time `t`. These are "global" variables that are used in all timesteps. Following [Theano's terminology](http://deeplearning.net/software/theano/library/scan.html), we call these global variables _non-sequences_.
 
@@ -191,7 +191,7 @@ In Section 4.2 of the [technical report](https://www.microsoft.com/en-us/researc
 
 ![PointerGRU](https://rawgit.com/YerevaNN/yerevann.github.io/master//public/2017-08-22/PointerGRU.svg "Pointer GRU")
 
-PointerGRU is a recurrent network that works for just two steps. The first step predicts the first word of the answer span, and the second step predicts the last word. Here is how it works. Both h<sup>P</sup> and the previous state of the PointerGRU cell are multiplied by their corresponding weights W and W<sup>a</sup><sub>v</sub>. Recall that the initial hidden state of the PointerGRU is the output of QuestionPooling. The products are then summed up and passed through ``tanh`` activation. The result is multiplied by the weight vector ``V`` and ``softmax`` activation is applied which outputs scores over h<sup>P</sup>. These scores, denoted by a<sup>t</sup> are probabilities over the words of the passage. Argmax of a<sup>1</sup> vector is the predicted starting point, and argmax of a<sup>2</sup> is the predicted final point of the answer (formula 9 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The hidden state of PointerGRU is determined based on the dot product of h<sup>P</sup> and a<sup>t</sup>, which is passed as an input to a simple GRU cell (formula 10 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)).
+PointerGRU is a recurrent network that works for just two steps. The first step predicts the first word of the answer span, and the second step predicts the last word. Here is how it works. Both h<sup>P</sup> and the previous state of the PointerGRU cell are multiplied by their corresponding weights W and W<sup>a</sup><sub>v</sub>. Recall that the initial hidden state of the PointerGRU is the output of QuestionPooling. The products are then summed up and passed through ``tanh`` activation. The result is multiplied by the weight vector ``V`` and ``softmax`` activation is applied which outputs scores over h<sup>P</sup>. These scores, denoted by a<sup>t</sup> are probabilities over the words of the passage. Argmax of a<sup>1</sup> vector is the predicted starting point, and argmax of a<sup>2</sup> is the predicted final point of the answer (formula 9 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The hidden state of PointerGRU is determined based on the dot product of h<sup>P</sup> and a<sup>t</sup>, which is passed as an input to a simple GRU cell (formula 10 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). So, unlike all previous modules of R-Net, the _output_ of PointerGRU (the red diamond at the top-right corner of the chart) is different from its hidden state. 
 
 ## Implementation details
 
