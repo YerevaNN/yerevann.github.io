@@ -197,14 +197,7 @@ PointerGRU is a recurrent network that works for just two steps. The first step 
 
 #### Softmax layer with masking
 
-One of the most important challenges in training recurrent networks is to handle different lengths of data points in a single batch. Keras has a [Masking layer](https://keras.io/layers/core/#masking) that handles the basic cases. We use it in the [encoding layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L81). But R-Net has more complex scenarios for which we had to develop our own solutions. For example, in all attention pooling modules we use ``softmax`` which is applied along "time" axis (e.g. over the words of the passage). We don't want to have positive probabilities after the last word of the sentence. So we have implemented a [custom Softmax function](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L7) which supports masking. Softmax for a vector `a` is defined as:
-
-```python
-s = sum( for all i, ea[i] )
-softmax[i] = e^a[i] / s
-```
-
-For numerical stability we use the following classical trick:
+One of the most important challenges in training recurrent networks is to handle different lengths of data points in a single batch. Keras has a [Masking layer](https://keras.io/layers/core/#masking) that handles the basic cases. We use it in the [encoding layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L81). But R-Net has more complex scenarios for which we had to develop our own solutions. For example, in all attention pooling modules we use ``softmax`` which is applied along "time" axis (e.g. over the words of the passage). We don't want to have positive probabilities after the last word of the sentence. So we have implemented a [custom Softmax function](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L7) which supports masking. Softmax is usually calculated the following way: 
 
 ```python
 m = max( for all i, a[i] )
@@ -212,15 +205,15 @@ e[i] = e^( a[i] - m )
 s = sum( for all i, e^a[i] )
 ```
 
-And then compute ```softmax[i] = e[i] / s```
+``m`` is used for numerical stability. To support masking, we [multiply](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L15) ``e`` by the mask.
 
-Here all ``a[i] - m`` values will be mapped to the range ``(-INF; 0]`` and therefore e<sup>a[i] - m</sup> will be mapped to the range ``(0;1]``. It will help in computing ``softmax[i]`` in each step as both ``e[i]`` and `s` will be small enough. If ``s`` is too small (smaller than epsilon) we add epsilon to ``s`` to avoid problems when dividing by zero. To support masking, we [multiply](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L15) ``e`` by the mask.
-
-Note that these details are not present in the technical report. Probably these are considered as commonly known tricks. But sometimes the details of masking can have critical effects (we know this from the work on [medical time series](https://arxiv.org/abs/1703.07771)).
+Note that these details are not present in the technical report. Probably these are considered as commonly known tricks. But sometimes the details of the masking process can have critical effects on the results (we know this from the work on [medical time series](https://arxiv.org/abs/1703.07771)).
 
 #### Argmax layer with masking
 
 [This layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/Argmax.py) is used when making predictions. It needs to support masking after a softmax layer, as we don't want to predict a word that doesn't belong to the sentence. The result of argmax is the index of the maximum element of the input.
+
+Note that we do not use argmax layer during the training. The vector of probabilities is directly passed to the loss function of Keras ([categorical_crossentropy](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/train.py#L46)). We use argmax in [predict.py only](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/predict.py#L36). 
 
 
 #### Slice layer
