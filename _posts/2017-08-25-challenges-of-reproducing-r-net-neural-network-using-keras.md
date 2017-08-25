@@ -10,7 +10,7 @@ tags:
 By [Martin Mirakyan](https://github.com/MartinXPN), [Karen Hambardzumyan](https://github.com/mahnerak) and
  [Hrant Khachatrian](https://github.com/Hrant-Khachatrian).
 
-In this post we describe our attempt to re-implement a neural architecture for automated question answering called R-NET, which is developed by the Natural Language Computing Group of Microsoft Research Asia. This architecture demonstrates the best performance among single models (not ensembles) on The Stanford Question Answering Dataset (as of August 25, 2017). MSR researchers released a technical report describing the model but did not release the code. We tried to implement the architecture in Keras framework and reproduce their results. This post describes the model and the challenges we faced while implementing it.
+In this post we describe our attempt to re-implement a neural architecture for automated question answering called [R-NET](https://www.microsoft.com/en-us/research/publication/mrc/), which is developed by the Natural Language Computing Group of Microsoft Research Asia. This architecture demonstrates the best performance among single models (not ensembles) on The Stanford Question Answering Dataset (as of August 25, 2017). MSR researchers released a [technical report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf) describing the model but did not release the code. We tried to implement the architecture in Keras framework and reproduce their results. This post describes the model and the challenges we faced while implementing it.
 
 <!--more-->
 
@@ -260,6 +260,11 @@ We didn't share the weights of the "attention gates": $$W_{g}$$. The reason is t
 The authors of the report tell many details about hyperparameters. Hidden vector lengths are 75 for all layers. As we concatenate the hidden states of two GRUs in bidirectional, we effectively get 150 dimensional vectors. 75 is not an even number so it could not refer to the length of the concatenated vector :) [AdaDelta optimizer](http://ruder.io/optimizing-gradient-descent/index.html#adadelta) is used to train the network with learning rate=1, $$\rho=0.95$$ and $$\varepsilon=1e^{-6}$$. Nothing is written about the size of batches, or the way batches are sampled. We used ``batch_size=50`` in our experiments to fit in 4GB GPU memory. 
  
 We couldn't get good performance with `75` hidden units. The models were quickly overfitting. We got our best results using `45` dimensional hidden states. 
+
+#### Weight initialization
+
+The report doesn't discuss weight initialization. We used default initialization schemes of Keras. In particular, Keras uses orthogonal initialization for recurrent connections of GRU, and uniform ([Glorot, Bengio, 2010](http://www.jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf)) initialization for the connections that come from the inputs. We used Glorot initialization for [all shared weights](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SharedWeight.py#L12). It is not obvious that this was the best solution.
+
 
 #### Training
 
