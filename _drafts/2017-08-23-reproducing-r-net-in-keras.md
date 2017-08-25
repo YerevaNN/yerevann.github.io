@@ -21,9 +21,7 @@ In this post we describe our attempt to re-implement a neural architecture for a
 
 ## Problem statement
 
-Given a passage and a question, the task is to predict an answer to the question based on the information found in the passage. The SQuAD dataset further constrains the answer to be a continuous sub-span of the provided passage. Answers usually include non-entities and can be long phrases. The neural network needs to "understand" both the passage and the question in order to be able to give a valid answer.
-
-#### Example from the dataset:
+Given a passage and a question, the task is to predict an answer to the question based on the information found in the passage. The SQuAD dataset further constrains the answer to be a continuous sub-span of the provided passage. Answers usually include non-entities and can be long phrases. The neural network needs to "understand" both the passage and the question in order to be able to give a valid answer. Here is an example from the dataset.
 
 **Passage:** Tesla later approached Morgan to ask for more funds to build a more powerful transmitter. When asked where all the money had gone, Tesla responded by saying that he was affected by the Panic of 1901, which he (Morgan) had caused. Morgan was shocked by the reminder of his part in the stock market crash and by Tesla’s breach of contract by asking for more funds. Tesla wrote another plea to Morgan, but it was also fruitless. Morgan still owed Tesla money on the original agreement, and Tesla had been facing foreclosure even before construction of the tower began.
 
@@ -31,7 +29,7 @@ Given a passage and a question, the task is to predict an answer to the question
 **Answer:** Panic of 1901
 
 
-## Architecture and Code:
+## Architecture and Code
 
 The [architecture](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py) of R-NET network is designed to take the question and the passage as inputs and to output an interval on the passage that contains the answer. The process consists of several steps:
 1. Encode the question and the passage
@@ -207,7 +205,7 @@ In Section 4.2 of the [technical report](https://www.microsoft.com/en-us/researc
 
 ## Implementation details
 
-We use Theano backend for Keras. It was faster than TensorFlow in our experiments. 
+We use Theano backend for Keras. It was faster than TensorFlow in our experiments. Our experience shows that TensorFlow is usually faster for simple network architectures. Probably Theano's optimization process is more efficient for complex extensions of recurrent networks.
 
 #### Layers with masking support
 
@@ -222,9 +220,9 @@ def softmax(x, axis, mask):
     return e / s
 ```
 
-``m`` is used for numerical stability. We [multiply](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L15) ``e`` by the mask to properly support masking. We also clip ``s`` by a very small number, because in theory it is possible that all positive values of ``e`` are outside the mask. 
+``m`` is used for numerical stability. To support masking we [multiply](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L15) ``e`` by the mask. We also clip ``s`` by a very small number, because in theory it is possible that all positive values of ``e`` are outside the mask. 
 
-Note that these details are not present in the technical report. Probably these are considered as commonly known tricks. But sometimes the details of the masking process can have critical effects on the results (we know this from the work on [medical time series](https://arxiv.org/abs/1703.07771)).
+Note that details like this are not described in the technical report. Probably these are considered as commonly known tricks. But sometimes the details of the masking process can have critical effects on the results (we know this from the work on [medical time series](https://arxiv.org/abs/1703.07771)).
 
 #### Slice layer
 
@@ -261,11 +259,11 @@ We didn't share the weights of the "attention gates": $$W_{g}$$. The reason is t
 
 The authors of the report tell many details about hyperparameters. Hidden vector lengths are 75 for all layers. As we concatenate the hidden states of two GRUs in bidirectional, we effectively get 150 dimensional vectors. 75 is not an even number so it could not refer to the length of the concatenated vector :) [AdaDelta optimizer](http://ruder.io/optimizing-gradient-descent/index.html#adadelta) is used to train the network with learning rate=1, $$\rho=0.95$$ and $$\varepsilon=1e^{-6}$$. Nothing is written about the size of batches, or the way batches are sampled. We used ``batch_size=50`` in our experiments to fit in 4GB GPU memory. 
  
-We couldn't get good results with `75` hidden units. The models were quickly overfitting. We got our best results using `45` dimensional hidden states. 
+We couldn't get good performance with `75` hidden units. The models were quickly overfitting. We got our best results using `45` dimensional hidden states. 
 
 #### Training
 
-The [training script](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/train.py) is very simple. First we create R-NET model:
+The [training script](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/train.py) is very simple. First we create the model:
 
 ```python
 model = RNet(hdim=args.hdim,                                            # Defauls is 45
@@ -274,22 +272,23 @@ model = RNet(hdim=args.hdim,                                            # Defaul
              M=None,                                                    # Size of question
              char_level_embeddings=args.char_level_embeddings)          # Default is false
 ```
-``M`` and ``N`` are provided as constants (not None) only in case if we want to speed up computations a little bit (by further optimizing the computational graph).
 
-Then we compile it and fit it on the training data. Our training data is 90% of the training set of SQuAD dataset. The other 10% is used as an internal validation dataset. We check the validation score after each epoch and save the current state of the model if it was better than the previous best one. The original _development set_ of SQuAD is used as a test set, we don't do model selection based on that.
+It is possible to slightly speed up computations by fixing ``M`` and ``N``. It usually helps Theano's compiler to further optimize the computational graph.
+
+We compile the model and fit it on the training set. Our training data is 90% of the original training set of SQuAD dataset. The other 10% is used as an internal validation dataset. We check the validation score after each epoch and save the current state of the model if it was better than the previous best one. The original _development set_ of SQuAD is used as a test set, we don't do model selection based on that.
 
 We had an idea to form the batches in a way that passages inside each batch have almost the same number of words. That would allow to train a little bit faster (as there would be many batches with short sequences), but we didn't use this trick yet. We took maximum 300 words from passages and 30 words from questions to avoid very long sequences. 
 
-Each epoch took around 100 minutes on a GTX980 GPU. 
+Each epoch took around 100 minutes on a GTX980 GPU. We got our best results after 31 epochs. 
 
 
-## Results and comparison with [R-NET paper](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)
+## Results and comparison with [R-NET technical report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)
 
 R-NET is currently (August 2017) the [best model on Stanford QA](https://rajpurkar.github.io/SQuAD-explorer/) benchmark among single models. SQuAD dataset uses two performance metrics: exact match (EM) and F1-score (F1). Human performance is estimated to be EM=82.3% and F1=91.2% on the test set.
 
 The report by Microsoft Research describes two versions of R-NET. The first one is called _R-NET (Wang et al., 2017)_ (which refers to a paper which is not yet available online) and reaches EM=71.3% and F1=79.7% on the test set. It is the model we described above without the additional biGRU between SelfAttnGRU and PointerGRU. The second version called _R-NET (March 2017)_ has the additional BiGRU and reaches EM=72.3% and F1=80.7%. The current best single model on SQuAD leaderboard has a higher score, which means R-NET development continued since the technical report was released. Ensemble models reach even higher scores.
 
-The best performance we got so far with our implementation is EM=56.82% and F1=66.68% on the development set. These results would put R-NET at the bottom of the SQuAD leaderboard. The model is available on [GitHub](https://github.com/YerevaNN/R-NET-in-Keras). We want to emphasize that R-NET's technical report is pretty good in terms of the reported details of the architecture compared to many other papers. Probably we misunderstood several details or have bugs in the code. Any feedback will be appreciated.
+The best performance we got so far with our implementation is EM=56.82% and F1=66.68% on the development set. These results would put R-NET at the bottom of the SQuAD leaderboard. The model is available on [GitHub](https://github.com/YerevaNN/R-NET-in-Keras). We want to emphasize that R-NET's technical report is pretty good in terms of the reported details of the architecture compared to many other papers. Probably we misunderstood several important details or have bugs in the code. Any feedback will be appreciated.
 
 
 ## Challenges of reproducibility
