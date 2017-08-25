@@ -213,22 +213,19 @@ We use Theano backend for Keras. It is
 
 One of the most important challenges in training recurrent networks is to handle different lengths of data points in a single batch. Keras has a [Masking layer](https://keras.io/layers/core/#masking) that handles the basic cases. We use it in the [encoding layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L81). But R-Net has more complex scenarios for which we had to develop our own solutions. For example, in all attention pooling modules we use $$softmax$$ which is applied along "time" axis (e.g. over the words of the passage). We don't want to have positive probabilities after the last word of the sentence. So we have implemented a [custom Softmax function](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L7) which supports masking. Softmax is usually calculated the following way: 
 
-# TODO get rid of this part
-
 ```python
-m = max( for all i, a[i] )
-e[i] = e^( a[i] - m )
-s = sum( for all i, e^a[i] )
+def softmax(x, axis, mask):
+    m = K.max(x, axis=axis, keepdims=True)
+    e = K.exp(x - m) * mask
+    s = K.sum(e, axis=axis, keepdims=True)
+    s = K.clip(s, K.floatx(), None)
+    return e / s
 ```
 
 ``m`` is used for numerical stability. To support masking, we [multiply](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L15) ``e`` by the mask.
+# TODO about epsilon clip
 
 Note that these details are not present in the technical report. Probably these are considered as commonly known tricks. But sometimes the details of the masking process can have critical effects on the results (we know this from the work on [medical time series](https://arxiv.org/abs/1703.07771)).
-
-We have also created an [Argmax layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/Argmax.py) that supports masking. It makes sure we don't predict a word that doesn't belong to the sentence. We used argmax only in [predict.py](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/predict.py#L36) to run on development data. 
-
-# TODO very unneccessary part
-
 
 #### Slice layer
 
@@ -263,23 +260,23 @@ We didn't share the weights of the "attention gates": $$W_{g}$$. The reason is t
 
 #### Hyperparameters
 
-The authors of the report tell many details about hyperparameters. Hidden vector lengths are 75 for all layers. As we concatenate the hidden states of two GRUs in bidirectional, we effectively get 150 dimensional vectors. 75 is not an even number so it could not refer to the length of the concatenated vector :) [AdaDelta optimizer](http://ruder.io/optimizing-gradient-descent/index.html#adadelta) is used to train the network with learning rate=1, $$\ro=0.95$$ and $$\epsilon=1e^{-6}$$. Nothing is written about the size of batches, or the way batches are sampled. We used batch_size=50 in our experiments to fit in 4GB GPU memory. 
+The authors of the report tell many details about hyperparameters. Hidden vector lengths are 75 for all layers. As we concatenate the hidden states of two GRUs in bidirectional, we effectively get 150 dimensional vectors. 75 is not an even number so it could not refer to the length of the concatenated vector :) [AdaDelta optimizer](http://ruder.io/optimizing-gradient-descent/index.html#adadelta) is used to train the network with learning rate=1, $$\rho=0.95$$ and $$\varepsilon=1e^{-6}$$. Nothing is written about the size of batches, or the way batches are sampled. We used ``batch_size=50`` in our experiments to fit in 4GB GPU memory. 
  
-We couldn't get good results with 75 hidden units. The models were quickly overfitting. We got our best results using 45 dimensional hidden states. 
+We couldn't get good results with `75` hidden units. The models were quickly overfitting. We got our best results using `45` dimensional hidden states. 
 
 #### Training
 
 The [training script](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/train.py) is very simple. First we create R-Net model:
 
 ```python
-model = RNet(hdim=args.hdim,						# Defauls is 45
-         dropout_rate=args.dropout,				        # Default is 0 (0.2 in the report)
-             N=None,							# Size of passage
-         M=None,							# Size of question
-             char_level_embeddings=args.char_level_embeddings)          # Default is false
+model = RNet(hdim=args.hdim,                                     # Defauls is 45
+             dropout_rate=args.dropout,                          # Default is 0 (0.2 in the report)
+             N=None,                                             # Size of passage
+             M=None,                                             # Size of question
+             char_level_embeddings=args.char_level_embeddings)   # Default is false
 
-# M and N are provided as a constant (not None) only in case if we want to speed up computations a little bit (by further optimizing the computational graph).
 ```
+``M`` and ``N`` are provided as constants (not None) only in case if we want to speed up computations a little bit (by further optimizing the computational graph).
 
 Then we compile it and fit it on the training data. Our training data is 90% of the training set of SQuAD dataset. The other 10% is used as an internal validation dataset. We check the validation score after each epoch and save the current state of the model if it was better than the previous best one. The original _development set_ of SQuAD is used as a test set, we don't do model selection based on that.
 
