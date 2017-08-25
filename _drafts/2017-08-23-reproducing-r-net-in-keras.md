@@ -68,7 +68,7 @@ $$
 
 Some parts of R-Net architecture require to use tensors that are neither part of a GRU state nor part of an input at time $$t$$. These are "global" variables that are used in all timesteps. Following [Theano's terminology](http://deeplearning.net/software/theano/library/scan.html), we call these global variables _non-sequences_.
 
-To make it easier to create GRU cells with additional features and operations we’ve created a [utility class called **WrappedGRU**](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/WrappedGRU.py) which is a base class for all GRU modules. The most important feature is that WrappedGRU supports operations with non-sequences (getting global parameters as an input). Also WrappedGRU needs to support sharing weights between modules, therefore it has to be able to get SharedWeight as an input. Keras doesn’t support weight sharing __TODO: link!!__, but instead it supports layer sharing and we use [SharedWeight layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SharedWeight.py) to solve this problem (SharedWeight is a layer that has no inputs and returns tensor of weights).
+To make it easier to create GRU cells with additional features and operations we’ve created a [utility class called **WrappedGRU**](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/WrappedGRU.py) which is a base class for all GRU modules. The most important feature is that WrappedGRU supports operations with non-sequences (getting global parameters as an input). Also WrappedGRU needs to support sharing weights between modules, therefore it has to be able to get SharedWeight as an input. Keras doesn’t directly support weight sharing, but instead it supports layer sharing and we use [SharedWeight layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SharedWeight.py) to solve this problem (SharedWeight is a layer that has no inputs and returns tensor of weights).
 
 
 ## 1. Question and Passage Encoder
@@ -207,7 +207,7 @@ In Section 4.2 of the [technical report](https://www.microsoft.com/en-us/researc
 
 ## Implementation details
 
-## TODO why do we use Theano instead of TensorFlow
+We use Theano backend for Keras. It is 
 
 #### Layers with masking support
 
@@ -261,6 +261,11 @@ The report doesn't explicitly describe which weights are shared. We have decided
 
 We didn't share the weights of the "attention gates": $$W_{g}$$. The reason is that we have a mix of uni- and bidirectional GRUs that use this gate and require different dimensions.  
 
+#### Hyperparameters
+
+The authors of the report tell many details about hyperparameters. Hidden vector lengths are 75 for all layers. As we concatenate the hidden states of two GRUs in bidirectional, we effectively get 150 dimensional vectors. 75 is not an even number so it could not refer to the length of the concatenated vector :) [AdaDelta optimizer](http://ruder.io/optimizing-gradient-descent/index.html#adadelta) is used to train the network with learning rate=1, $$\ro=0.95$$ and $$\epsilon=1e^{-6}$$. Nothing is written about the size of batches, or the way batches are sampled. We used batch_size=50 in our experiments to fit in 4GB GPU memory. 
+ 
+We couldn't get good results with 75 hidden units. The models were quickly overfitting. We got our best results using 45 dimensional hidden states. 
 
 #### Training
 
@@ -268,7 +273,7 @@ The [training script](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/tra
 
 ```python
 model = RNet(hdim=args.hdim,						# Defauls is 45
-         dropout_rate=args.dropout,				        # Default is 0 (0.2 in paper)
+         dropout_rate=args.dropout,				        # Default is 0 (0.2 in the report)
              N=None,							# Size of passage
          M=None,							# Size of question
              char_level_embeddings=args.char_level_embeddings)          # Default is false
@@ -276,51 +281,22 @@ model = RNet(hdim=args.hdim,						# Defauls is 45
 # M and N are provided as a constant (not None) only in case if we want to speed up computations a little bit (by further optimizing the computational graph).
 ```
 
-Then we compile it:
+Then we compile it and fit it on the training data. Our training data is 90% of the training set of SQuAD dataset. The other 10% is used as an internal validation dataset. We check the validation score after each epoch and save the current state of the model if it was better than the previous best one. The original _development set_ of SQuAD is used as a test set, we don't do model selection based on that.
 
-```python
+We had an idea to form the batches in a way that passages inside each batch have almost the same number of words. That would allow to train a little bit faster (as there would be many batches with short sequences), but we didn't use this trick yet. We took maximum 300 words from passages and 30 words from questions to avoid very long sequences. 
 
-optimizer_config = {'class_name': args.optimizer,                 # Default is Adadelta
-                    'config': {'lr': args.lr} if args.lr else {}} # Default is None
-
-model.compile(optimizer=optimizer_config,
-              loss=args.loss,               # Default loss is categorical_crossentropy
-              metrics=['accuracy'])         # Check the accuracy of predicting intervals
-```
-
-We fit it with the training data, and validate the results on the validation dataset. We check the validation score after each epoch and save the current state of the model if it was better than the previous best one.
-
-
-```python
-train_data_gen = BatchGen(*train_data, batch_size=args.batch_size, shuffle=False, group=True, maxlen=maxlen)
-valid_data_gen = BatchGen(*valid_data, batch_size=args.batch_size, shuffle=False, group=True, maxlen=maxlen)
-# group=True divides the input into groups by their lengths (short ones together a bit longer ones together, etc.) and then shuffles items only inside groups when preparing the next batch.
-
-model.fit_generator(generator=train_data_gen,
-                    steps_per_epoch=train_data_gen.steps(),
-                    validation_data=valid_data_gen,
-                    validation_steps=valid_data_gen.steps(),
-                    epochs=args.nb_epochs,
-                    callbacks=[ ModelCheckpoint(path, verbose=1, save_best_only=True) ])
-```
-
-#### Hyperparameters
+Each epoch took around 100 minutes on GTX980 GPU. 
 
 
 ## Results and comparison with [R-Net paper](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)
 
+R-Net is currently (August 2017) the [best model on Stanford QA](https://rajpurkar.github.io/SQuAD-explorer/) benchmark among single models. SQuAD dataset uses two performance metrics, exact match (EM) and F1-score (F1). Human performance is estimated to be EM=82.3% and F1=91.2% on the test set.
 
-R-NET is currently (July 2017) the best model on Stanford QA database: [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/). SQuAD dataset uses two performance metrics, exact match (EM) and F1-score (F1). Human performance is estimated to be EM=82.3% and F1=91.2% on the test set.
+The report by Microsoft Research describes two versions of R-NET:
 
-The report describes two versions of R-NET:
+The first one is called _R-NET (Wang et al., 2017)_ (which refers to a paper which is not yet available online) and reaches EM=71.3% and F1=79.7% on the test set. It is the model we described above without the additional biGRU between SelfAttnGRU and PointerGRU. The second version called _R-NET (March 2017)_ has the additional BiGRU between the self-matching attention layer and the pointer network and reaches EM=72.3% and F1=80.7%. The current best single model on SQuAD leaderboard has a higher score, which means R-Net development continued after March 2017. Ensemble models reach even higher scores.
 
-1. The first one is called R-NET (Wang et al., 2017) (which refers to a paper which not yet available online) and reaches EM=71.3% and F1=79.7% on the test set. It consists of input encoders, a modified version of Match-LSTM, self-matching attention layer (the main contribution of the paper) and a pointer network.
-
-2. The second version called R-NET (March 2017) has one additional BiGRU between the self-matching attention layer and the pointer network and reaches EM=72.3% and F1=80.7%.
-
-The current best single model on SQuAD leaderboard has a higher score, which means R-Net development continued after March 2017. Ensemble models reach even higher scores.
-
-Our work is the implementation of the first version, but we cannot yet reproduce the reported results (EM=71.3% and F1=79.7%). The best performance we got so far was EM=54.21% and F1=65.26% on the dev set.
+The best performance we got so far was EM=54.21% and F1=65.26% on the dev set. This is much lower than what is reported. Obviously this doesn't imply any cheating (SQuAD's evaluation procedure is very fair).  
 
 ## Challenges of reproducibility
 
