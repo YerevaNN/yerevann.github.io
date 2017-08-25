@@ -268,12 +268,11 @@ We couldn't get good results with `75` hidden units. The models were quickly ove
 The [training script](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/train.py) is very simple. First we create R-NET model:
 
 ```python
-model = RNet(hdim=args.hdim,                                     # Defauls is 45
-             dropout_rate=args.dropout,                          # Default is 0 (0.2 in the report)
-             N=None,                                             # Size of passage
-             M=None,                                             # Size of question
-             char_level_embeddings=args.char_level_embeddings)   # Default is false
-
+model = RNet(hdim=args.hdim,                                            # Defauls is 45
+             dropout_rate=args.dropout,                                 # Default is 0 (0.2 in the report)
+             N=None,                                                    # Size of passage
+             M=None,                                                    # Size of question
+             char_level_embeddings=args.char_level_embeddings)          # Default is false
 ```
 ``M`` and ``N`` are provided as constants (not None) only in case if we want to speed up computations a little bit (by further optimizing the computational graph).
 
