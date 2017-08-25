@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Reproducing R-Net in Keras
+tags:
 - Recurrent neural networks
 - Question answering
 - Reproducibility
