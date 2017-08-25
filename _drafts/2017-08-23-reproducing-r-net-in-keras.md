@@ -29,7 +29,7 @@ Given a passage and a question, the task is to predict an answer to the question
 **Answer:** Panic of 1901
 
 
-## Architecture and Code
+## The architecture of R-NET
 
 The [architecture](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py) of R-NET network is designed to take the question and the passage as inputs and to output an interval on the passage that contains the answer. The process consists of several steps:
 1. Encode the question and the passage
@@ -40,13 +40,13 @@ The [architecture](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.
 Each of these steps is implemented as some sort of recurrent neural network. The model is trained end-to-end.
 
 
-### Visualizing Complex Recurrent Networks
+### Drawing complex recurrent networks
 
 We are using [GRU](https://arxiv.org/abs/1412.3555) cells (Gated Recurrent Unit) for all RNNs. The authors claim that their performance is similar to LSTM, but they are computationally cheaper.
 
 ![GRU network](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRU.svg "GRU network")
 
-Most of the modules of R-NET are implemented as recurrent networks with very complex cells. We visualize these cells using colorful charts. Here is a chart that corresponds to the original GRU cell.
+Most of the modules of R-NET are implemented as recurrent networks with  complex cells. We draw these cells using colorful charts. Here is a chart that corresponds to the original GRU cell.
 
 ![GRU cell](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRUcell.svg "GRU cell")
 
@@ -69,7 +69,7 @@ Some parts of R-NET architecture require to use tensors that are neither part of
 To make it easier to create GRU cells with additional features and operations we’ve created a [utility class called **WrappedGRU**](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/WrappedGRU.py) which is a base class for all GRU modules. WrappedGRU supports operations with non-sequences and sharing weights between modules. Keras doesn’t directly support weight sharing, but instead it supports layer sharing and we use [SharedWeight layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SharedWeight.py) to solve this problem (SharedWeight is a layer that has no inputs and returns tensor of weights). WrappedGRU supports taking SharedWeight as an input.
 
 
-### 1. Question and Passage Encoder
+### 1. Question and passage encoder
 
 This step consists of two parts: [preprocessing](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/preprocessing.py) and text encoding. The preprocessing is done in a separate process and is not part of the neural network. First we preprocess the data by splitting it into parts, and then we convert all the words to corresponding vectors. Word-vectors are generated using [gensim](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/preprocessing.py#L35).
 
