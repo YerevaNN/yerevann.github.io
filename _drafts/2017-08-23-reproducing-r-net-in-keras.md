@@ -209,7 +209,7 @@ In Section 4.2 of the [technical report](https://www.microsoft.com/en-us/researc
 
 ## TODO why do we use Theano instead of TensorFlow
 
-#### Softmax layer with masking
+#### Layers with masking support
 
 One of the most important challenges in training recurrent networks is to handle different lengths of data points in a single batch. Keras has a [Masking layer](https://keras.io/layers/core/#masking) that handles the basic cases. We use it in the [encoding layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L81). But R-Net has more complex scenarios for which we had to develop our own solutions. For example, in all attention pooling modules we use $$softmax$$ which is applied along "time" axis (e.g. over the words of the passage). We don't want to have positive probabilities after the last word of the sentence. So we have implemented a [custom Softmax function](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/helpers.py#L7) which supports masking. Softmax is usually calculated the following way: 
 
@@ -225,13 +225,9 @@ s = sum( for all i, e^a[i] )
 
 Note that these details are not present in the technical report. Probably these are considered as commonly known tricks. But sometimes the details of the masking process can have critical effects on the results (we know this from the work on [medical time series](https://arxiv.org/abs/1703.07771)).
 
-#### Argmax layer with masking
+We have also created an [Argmax layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/Argmax.py) that supports masking. It makes sure we don't predict a word that doesn't belong to the sentence. We used argmax only in [predict.py](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/predict.py#L36) to run on development data. 
 
 # TODO very unneccessary part
-
-[This layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/Argmax.py) is used when making predictions. It needs to support masking after a softmax layer, as we don't want to predict a word that doesn't belong to the sentence. The result of argmax is the index of the maximum element of the input.
-
-Note that we do not use argmax layer during the training. The vector of probabilities is directly passed to the loss function of Keras ([categorical_crossentropy](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/train.py#L46)). We use argmax in [predict.py only](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/predict.py#L36). 
 
 
 #### Slice layer
@@ -246,14 +242,14 @@ Keras supports [batch generators](https://github.com/YerevaNN/R-NET-in-Keras/blo
 
 #### Bidirectional GRUs
 
-Bidirectional RNN Mikolov 2010
+R-Net uses multiple bidirectional GRUs. The common way of implementing BiRNN is to take two copies of the same network (without sharing the weights) and then concatenate the hidden states to produce the output. One can take the sum of the vectors instead of concatenation, but concatenation seems to be more popular (that's the default version of [Bidirectional layer](https://keras.io/layers/wrappers/) in Keras).
 
 
 #### Dropout
 
 The report indicates that dropout is applied "between layers with a dropout rate of 0.2". We have applied dropout [before each of the three layers](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L85) of BiGRUs of both encoders, at the [outputs of both encoders](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L87), right [after QuestionAttnGRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L103), [after SelfAttnGRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L112) and [after QuestionPooling](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L119) layer. We are not sure that this is exactly what the authors did.
 
-One more implementation detail related to dropout is related to the way it is applied on the passage and question representation matrices. The rows of these matrices correspond to different words and the "vanilla" dropout will apply different masks on different words. But it is a common trick to apply the same mask at each "timestep", i.e. each word. That's how dropout is implemented **TODO: link** in recurrent layers in Keras. The report doesn't discuss these details.
+One more implementation detail related to dropout is related to the way it is applied on the passage and question representation matrices. The rows of these matrices correspond to different words and the "vanilla" dropout will apply different masks on different words. But it is a common trick to apply the same mask at each "timestep", i.e. each word. That's how dropout is implemented in [recurrent layers in Keras](https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L15). The report doesn't discuss these details.
 
 
 #### Weight sharing
@@ -322,7 +318,7 @@ The report describes two versions of R-NET:
 
 2. The second version called R-NET (March 2017) has one additional BiGRU between the self-matching attention layer and the pointer network and reaches EM=72.3% and F1=80.7%.
 
-The current best single-model on SQuAD leaderboard has a higher score, which means R-NET development continued after March 2017. Ensemble models reach higher scores.
+The current best single model on SQuAD leaderboard has a higher score, which means R-Net development continued after March 2017. Ensemble models reach even higher scores.
 
 Our work is the implementation of the first version, but we cannot yet reproduce the reported results (EM=71.3% and F1=79.7%). The best performance we got so far was EM=54.21% and F1=65.26% on the dev set.
 
