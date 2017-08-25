@@ -69,7 +69,7 @@ Some parts of R-NET architecture require to use tensors that are neither part of
 To make it easier to create GRU cells with additional features and operations we’ve created a [utility class called **WrappedGRU**](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/WrappedGRU.py) which is a base class for all GRU modules. WrappedGRU supports operations with non-sequences and sharing weights between modules. Keras doesn’t directly support weight sharing, but instead it supports layer sharing and we use [SharedWeight layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/SharedWeight.py) to solve this problem (SharedWeight is a layer that has no inputs and returns tensor of weights). WrappedGRU supports taking SharedWeight as an input.
 
 
-## 1. Question and Passage Encoder
+### 1. Question and Passage Encoder
 
 This step consists of two parts: [preprocessing](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/preprocessing.py) and text encoding. The preprocessing is done in a separate process and is not part of the neural network. First we preprocess the data by splitting it into parts, and then we convert all the words to corresponding vectors. Word-vectors are generated using [gensim](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/preprocessing.py#L35).
 
@@ -113,7 +113,7 @@ uQ = Dropout(rate=dropout_rate, name='uQ') (uQ)
 
 After encoding the passage and the question we finally have their vector representations $$u^P$$ and $$u^Q$$. Now we can delve deeper in understanding the meaning of the passage having in mind the question.
 
-## 2. Obtain question aware representation for the passage
+### 2. Obtain question aware representation for the passage
 
 The next module computes another representation for the passage by taking into account the words inside the question sentence. We implement it using the following code:
 
@@ -144,7 +144,7 @@ These ideas seem to come from a paper by [Rocktäschel et al.](https://arxiv.org
 The authors of R-NET did one more step. They applied an additional gate to the concatenated vector $$[c_{t}, u^P_{t}]$$. The gate is simply a dot product of some new weight matrix $$W_{g}$$ and the concatenated vector, passed through a sigmoid activation function. The output of the gate is a vector of non-negative numbers, which is then (element-wise) multiplied by the original concatenated vector (see formula 6 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The result of this multiplication is finally passed to the GRU cell as an input.
 
 
-## 3. Apply self-matching attention on the passage to get its final representation
+### 3. Apply self-matching attention on the passage to get its final representation
 
 Next, the authors suggest to add a self attention mechanism on the passage itself.
 
@@ -170,7 +170,7 @@ The authors consider this step as their main contribution to the architecture.
 
 It is interesting to note that the authors write `BiRNN` in Section 3.3 (Self-Matching Attention) and just `RNN` in Section 3.2 (which describes question-aware passage representation). For that reason we used BiGRU in SelfAttnGRU and unidirectional GRU in QuestionAttnGRU. Later we discovered a sentence in Section 4.1 which suggests that we were not correct: `the gated attention-based recurrent network for question and passage matching is also encoded bidirectionally in our experiment`. 
 
-## 4. Predict the interval which contains the answer of a question
+### 4. Predict the interval which contains the answer of a question
 
 Finally we're ready to predict the interval of the passage which contains the answer of the question. To do this we use [QuestionPooling layer](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionPooling.py) followed by PointerGRU ([Vinyals et al., Pointer networks, 2015](https://arxiv.org/abs/1506.03134)).
 
