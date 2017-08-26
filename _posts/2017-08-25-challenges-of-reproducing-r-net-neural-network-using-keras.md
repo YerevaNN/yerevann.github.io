@@ -193,7 +193,7 @@ answer_start = Slice(0, name='answer_start ') (ps)
 answer_end = Slice(1, name='answer_end') (ps)
 ```
 
-QuestionPooling is the attention pooling of the whole question vector $u^Q$. Its purpose is to create the first hidden state of PointerGRU. It is similar to the other attention-based modules, but has a strange description in the report. Formula 11 on page 5 includes a product of two tensors $$W_v^Q$$ and $$V_r^Q$$. Both these tensors are trainable parameters (as confirmed by Furu Wei, one of the coauthors of the technical report), and it is not clear why this dot product is not replaced by a single trainable vector. 
+QuestionPooling is the attention pooling of the whole question vector $$u^Q$$. Its purpose is to create the first hidden state of PointerGRU. It is similar to the other attention-based modules, but has a strange description in the report. Formula 11 on page 5 includes a product of two tensors $$W_v^Q$$ and $$V_r^Q$$. Both these tensors are trainable parameters (as confirmed by Furu Wei, one of the coauthors of the technical report), and it is not clear why this dot product is not replaced by a single trainable vector. 
 
 $$h^P$$ is the output of the previous module and it contains the final representation of the passage. It is passed to this module as an input to obtain the final answer.
 
