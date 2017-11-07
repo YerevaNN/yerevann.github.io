@@ -30,4 +30,4 @@ version:             2.0.0
 
 # Atom/RSS
 plugins:
- - jekyll-feed
+  - jekyll-feed
