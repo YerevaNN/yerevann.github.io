@@ -27,7 +27,7 @@ In this post we'll try to understand: What do individual neurons of the network 
 
 ## Transliteration
 
-About half of the billions of internet users speak languages written in non-Latin alphabets, like Russian, Arabic, Chinese, Greek and Armenian.  Very often, they haphazardly use the Latin alphabet to write those languages.
+About half of the billions of internet users speak languages written in non-Latin alphabets, like Russian, Hindi, Arabic, Chinese, Greek and Armenian.  Very often, they haphazardly use the Latin alphabet to write those languages.
 
 `Привет`: `Privet`, `Privyet`, `Priwjet`, ...  
 `كيف حالك`: `kayf halk`, `keyf 7alek`, ...  
