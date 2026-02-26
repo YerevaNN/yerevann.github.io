@@ -44,11 +44,11 @@ Each of these steps is implemented as some sort of recurrent neural network. The
 
 We are using [GRU](https://arxiv.org/abs/1412.3555) cells (Gated Recurrent Unit) for all RNNs. The authors claim that their performance is similar to LSTM, but they are computationally cheaper.
 
-![GRU network](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRU.svg "GRU network")
+![GRU network](https://raw.githack.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRU.svg "GRU network")
 
 Most of the modules of R-NET are implemented as recurrent networks with  complex cells. We draw these cells using colorful charts. Here is a chart that corresponds to the original GRU cell.
 
-![GRU cell](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRUcell.svg "GRU cell")
+![GRU cell](https://raw.githack.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/GRUcell.svg "GRU cell")
 
 White rectangles represent operations on tensors (dot product, sum, etc.). Yellow rectangles are activations (tanh, softmax or sigmoid). Orange circles are the weights of the network. Compare this to the formula of GRU cell (taken from [Olah's famous blogpost](http://colah.github.io/posts/2015-08-Understanding-LSTMs/)):
 
@@ -128,7 +128,7 @@ vP = QuestionAttnGRU(units=H,
 
 [QuestionAttnGRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/QuestionAttnGRU.py) is a complex extension of a recurrent layer (extends WrappedGRU and overrides the step method by adding additional operations before passing the input to the GRU cell).
 
-![QuestionAttnGRU](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/QuestionAttnGRU.svg "Question Attention GRU")
+![QuestionAttnGRU](https://raw.githack.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/QuestionAttnGRU.svg "Question Attention GRU")
 
 The vectors of question aware representation of the passage are denoted by $$v^P$$. As a reminder $$u^P_t$$ is the vector representation of the passage $$P$$, $$u^Q$$ is the matrix representation of the question $$Q$$ (each row corresponds to a single word).
 
@@ -162,7 +162,7 @@ The output of the previous step (Question attention) is denoted by $$v^P$$. It r
 
 The output of the self-matching GRU cell at time $$t$$ is denoted by $$h^P_{t}$$.
 
-![SelfAttnGRU](https://rawgit.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/SelfAttnGRU.svg "Self-matching Attention GRU")
+![SelfAttnGRU](https://raw.githack.com/YerevaNN/yerevann.github.io/master/public/2017-08-22/SelfAttnGRU.svg "Self-matching Attention GRU")
 
 The implementation is very similar to the previous module. We compute dot products of weights $$W^PP_{u}$$ with the current word vector $$v^P_{t}$$, and $$W^P_{v}$$ with the entire $$v^P$$ matrix, then add them up and apply $$\tanh{}$$ activation. Next, the result is multiplied by a weight-vector $$V$$ and passed through $$softmax$$ activation, which produces an attention vector. The dot product of the attention vector and $$v^P$$ matrix, again denoted by $$c_{t}$$, is the weighted average of all word vectors of the passage that are relevant to the current word $$v^P_{t}$$. $$c_{t}$$ is then concatenated with $$v^P_{t}$$ itself. The concatenated vector is passed through a gate and is given to GRU cell as an input.
 
@@ -199,7 +199,7 @@ $$h^P$$ is the output of the previous module and it contains the final represent
 
 In Section 4.2 of the [technical report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf) the authors write that after submitting their paper to ACL they made one more modification. They have added [another bidirectional GRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/model.py#L114-L116) on top of $$h^P$$ before feeding it to PointerGRU. 
 
-![PointerGRU](https://rawgit.com/YerevaNN/yerevann.github.io/master//public/2017-08-22/PointerGRU.svg "Pointer GRU")
+![PointerGRU](https://raw.githack.com/YerevaNN/yerevann.github.io/master//public/2017-08-22/PointerGRU.svg "Pointer GRU")
 
 [PointerGRU](https://github.com/YerevaNN/R-NET-in-Keras/blob/master/layers/PointerGRU.py) is a recurrent network that works for just two steps. The first step predicts the first word of the answer span, and the second step predicts the last word. Here is how it works. Both $$h^P$$ and the previous state of the PointerGRU cell are multiplied by their corresponding weights $$W$$ and $$W^a_{v}$$. Recall that the initial hidden state of the PointerGRU is the output of QuestionPooling. The products are then summed up and passed through $$tanh$$ activation. The result is multiplied by the weight vector $$V$$ and $$softmax$$ activation is applied which outputs scores over $$h^P$$. These scores, denoted by $$a^t$$ are probabilities over the words of the passage. Argmax of $$a^1$$ vector is the predicted starting point, and argmax of $$a^2$$ is the predicted final point of the answer (formula 9 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). The hidden state of PointerGRU is determined based on the dot product of $$h^P$$ and $$a^t$$, which is passed as an input to a simple GRU cell (formula 10 on page 4 of the [report](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf)). So, unlike all previous modules of R-NET, the _output_ of PointerGRU (the red diamond at the top-right corner of the chart) is different from its hidden state. 
 
